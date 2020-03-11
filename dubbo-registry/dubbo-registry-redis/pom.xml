@@ -38,6 +38,8 @@
         <dependency>
             <groupId>redis.clients</groupId>
             <artifactId>jedis</artifactId>
+            <!-- vergilyn-comment, 2020-03-05 >>>> 强制2.9.0-->
+            <version>2.9.0</version>
         </dependency>
         <dependency>
             <groupId>com.github.kstyrc</groupId>

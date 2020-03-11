@@ -16,21 +16,16 @@
  */
 package org.apache.dubbo.config.spring.beans.factory.config;
 
+import java.io.IOException;
+import java.util.LinkedHashMap;
+import java.util.Map;
+
 import org.springframework.beans.factory.config.YamlProcessor;
 import org.springframework.core.env.MapPropertySource;
 import org.springframework.core.env.PropertySource;
 import org.springframework.core.io.support.EncodedResource;
 import org.springframework.core.io.support.PropertySourceFactory;
-import org.yaml.snakeyaml.DumperOptions;
 import org.yaml.snakeyaml.Yaml;
-import org.yaml.snakeyaml.nodes.Tag;
-import org.yaml.snakeyaml.representer.Representer;
-import org.yaml.snakeyaml.resolver.Resolver;
-
-import java.io.IOException;
-import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.regex.Pattern;
 
 /**
  * YAML {@link PropertySourceFactory} implementation, some source code is copied Spring Boot
@@ -48,7 +43,8 @@ public class YamlPropertySourceFactory extends YamlProcessor implements Property
 
     @Override
     protected Yaml createYaml() {
-        return new Yaml(new StrictMapAppenderConstructor(), new Representer(),
+        // vergilyn-comment, 2020-03-09 >>>> 注释，NotFound `StrictMapAppenderConstructor`
+       /* return new Yaml(new StrictMapAppenderConstructor(), new Representer(),
                 new DumperOptions(), new Resolver() {
             @Override
             public void addImplicitResolver(Tag tag, Pattern regexp,
@@ -58,7 +54,9 @@ public class YamlPropertySourceFactory extends YamlProcessor implements Property
                 }
                 super.addImplicitResolver(tag, regexp, first);
             }
-        });
+        });*/
+
+       return null;
     }
 
     public Map<String, Object> process() {

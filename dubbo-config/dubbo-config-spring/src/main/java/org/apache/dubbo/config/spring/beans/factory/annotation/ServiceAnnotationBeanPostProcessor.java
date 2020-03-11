@@ -16,6 +16,16 @@
  */
 package org.apache.dubbo.config.spring.beans.factory.annotation;
 
+import java.lang.annotation.Annotation;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
 import org.apache.dubbo.common.logger.Logger;
 import org.apache.dubbo.common.logger.LoggerFactory;
 import org.apache.dubbo.common.utils.ArrayUtils;
@@ -25,7 +35,6 @@ import org.apache.dubbo.config.annotation.Service;
 import org.apache.dubbo.config.spring.ServiceBean;
 import org.apache.dubbo.config.spring.context.DubboBootstrapApplicationListener;
 import org.apache.dubbo.config.spring.context.annotation.DubboClassPathBeanDefinitionScanner;
-
 import org.springframework.beans.BeansException;
 import org.springframework.beans.MutablePropertyValues;
 import org.springframework.beans.factory.BeanClassLoaderAware;
@@ -54,16 +63,6 @@ import org.springframework.util.CollectionUtils;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 
-import java.lang.annotation.Annotation;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
 import static com.alibaba.spring.util.AnnotatedBeanDefinitionRegistryUtils.registerBeans;
 import static com.alibaba.spring.util.ObjectUtils.of;
 import static org.apache.dubbo.config.spring.beans.factory.annotation.ServiceBeanNameBuilder.create;
@@ -77,7 +76,9 @@ import static org.springframework.util.ClassUtils.resolveClassName;
 /**
  * {@link Service} Annotation
  * {@link BeanDefinitionRegistryPostProcessor Bean Definition Registry Post Processor}
- *
+ * <p>vergilyn-comment, 2020-03-09 >>>> <br/>
+ *   该类的执行时机： `DubboComponentScanRegistrar#registerServiceAnnotationBeanPostProcessor(...)`
+ * </p>
  * @since 2.5.8
  */
 public class ServiceAnnotationBeanPostProcessor implements BeanDefinitionRegistryPostProcessor, EnvironmentAware,
@@ -109,6 +110,10 @@ public class ServiceAnnotationBeanPostProcessor implements BeanDefinitionRegistr
     @Override
     public void postProcessBeanDefinitionRegistry(BeanDefinitionRegistry registry) throws BeansException {
 
+        /* vergilyn-comment, 2020-03-09 >>>>
+         *   可能造成 repeat-registry，因为 @EnableDubbo 中会先去registry该类。
+         *   解决方法 application.properties 中将 `spring.main.allow-bean-definition-overriding = true`
+         */
         // @since 2.7.5
         registerBeans(registry, DubboBootstrapApplicationListener.class);
 

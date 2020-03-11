@@ -29,7 +29,7 @@
     <version>${revision}</version>
     <packaging>pom</packaging>
 
-    <name>${project.artifactId}</name>
+    <name>1. ${project.artifactId}</name>
     <description>The parent project of dubbo</description>
     <url>https://github.com/apache/dubbo</url>
     <inceptionYear>2011</inceptionYear>
@@ -86,7 +86,22 @@
         <url>https://github.com/apache/dubbo/issues</url>
     </issueManagement>
 
+    <repositories>
+        <repository>
+            <snapshots>
+                <enabled>true</enabled>
+            </snapshots>
+            <id>nexus-aliyun</id>
+            <name>Nexus aliyun</name>
+            <url>http://maven.aliyun.com/nexus/content/groups/public</url>
+        </repository>
+    </repositories>
+
     <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+        <maven.compiler.encoding>UTF-8</maven.compiler.encoding>
+
         <!-- Test libs -->
         <junit_jupiter_version>5.6.0</junit_jupiter_version>
         <hazelcast_version>3.11.1</hazelcast_version>
@@ -125,7 +140,11 @@
         <arguments />
         <checkstyle.skip>true</checkstyle.skip>
         <rat.skip>true</rat.skip>
+
         <revision>2.7.6</revision>
+        <spring-boot-dependencies.version>2.2.2.RELEASE</spring-boot-dependencies.version>
+        <alibaba-nacos.version>1.1.4</alibaba-nacos.version>
+
     </properties>
 
     <modules>
@@ -149,10 +168,21 @@
         <module>dubbo-configcenter</module>
         <module>dubbo-dependencies</module>
         <module>dubbo-metadata</module>
+
+        <module>vergilyn-dubbo-examples</module>
     </modules>
 
     <dependencyManagement>
         <dependencies>
+            <!-- Spring Boot -->
+            <dependency>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-dependencies</artifactId>
+                <version>${spring-boot-dependencies.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+
             <dependency>
                 <groupId>org.apache.dubbo</groupId>
                 <artifactId>dubbo-dependencies-bom</artifactId>

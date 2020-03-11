@@ -8,7 +8,7 @@
 - [服务导出（服务注册）](http://dubbo.apache.org/zh-cn/docs/source_code_guide/export-service.html)
 - [服务引用（服务发现）](http://dubbo.apache.org/zh-cn/docs/source_code_guide/refer-service.html)
 
-## checkout from `origin/2.7.6-release`
+**checkout from `origin/2.7.6-release`**
 
 [github, dubbo]: https://github.com/apache/dubbo
 [github, dubbo-spring-boot-project]: https://github.com/apache/dubbo-spring-boot-project

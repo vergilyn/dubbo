@@ -1,0 +1,60 @@
+@startuml
+(*)  --> "org.apache.dubbo.config.spring.context.annotation.<color:808000>**@EnableDubbo**</color>" as enable_dubbo
+note right
+```
+@EnableDubboConfig
+@DubboComponentScan
+public @interface EnableDubbo {
+    // 省略...
+}
+```
+end note
+
+enable_dubbo --> "<color:808000>**@EnableDubboConfig**</color>"
+note left
+```
+@Import(DubboConfigConfigurationRegistrar.class)
+public @interface EnableDubboConfig {
+    // 省略
+}
+```
+end note
+
+--> "DubboConfigConfigurationRegistrar#registerBeanDefinitions(...)"
+note left
+1. 将`dubbo.*`等配置属性绑定到了相应的ConfigurationBean中。具体参考`DubboConfigConfiguration.class`
+2. 注册了一些公共的bean，参考`DubboBeanUtils#registerCommonBeans(...)`
+  - "referenceAnnotationBeanPostProcessor"
+  - "dubboConfigAliasPostProcessor"
+  - "dubboLifecycleComponentApplicationListener"
+  - "dubboBootstrapApplicationListener"
+  - "dubboConfigDefaultPropertyValueBeanPostProcessor"
+end note
+
+if multiple? then
+    -->[true] "DubboConfigConfiguration.Single" as config_single
+    --> "DubboBeanUtils#registerCommonBeans(...)" as config_common
+else
+    -->[false] "DubboConfigConfiguration.Multiple" as config_multiple
+    --> config_common
+endif
+
+--> "111"
+
+
+enable_dubbo --> "<color:808000>**@DubboComponentScan**</color>"
+note right
+```
+@Import(DubboComponentScanRegistrar.class)
+public @interface DubboComponentScan {
+    // 省略...
+}
+```
+end note
+
+-->[ ] config_common
+note right
+
+end note
+
+@enduml

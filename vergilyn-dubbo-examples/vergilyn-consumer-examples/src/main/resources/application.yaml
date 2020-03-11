@@ -1,0 +1,14 @@
+spring:
+  application:
+    name: dubbo-consumer-application
+  profiles:
+    active:
+      - actuator
+  main:
+    allow-bean-definition-overriding: true
+
+server:
+  port: 9020
+
+
+

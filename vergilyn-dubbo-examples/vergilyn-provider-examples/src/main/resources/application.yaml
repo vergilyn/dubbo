@@ -1,0 +1,11 @@
+server:
+  port: 9010
+
+spring:
+  application:
+    name: dubbo-provider-application
+  profiles:
+    active:
+      - actuator
+  main:
+    allow-bean-definition-overriding: true

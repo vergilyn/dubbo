@@ -16,6 +16,11 @@
  */
 package org.apache.dubbo.remoting.http.tomcat;
 
+import java.io.File;
+
+import org.apache.catalina.Context;
+import org.apache.catalina.LifecycleException;
+import org.apache.catalina.startup.Tomcat;
 import org.apache.dubbo.common.URL;
 import org.apache.dubbo.common.logger.Logger;
 import org.apache.dubbo.common.logger.LoggerFactory;
@@ -24,14 +29,8 @@ import org.apache.dubbo.remoting.http.servlet.DispatcherServlet;
 import org.apache.dubbo.remoting.http.servlet.ServletManager;
 import org.apache.dubbo.remoting.http.support.AbstractHttpServer;
 
-import org.apache.catalina.Context;
-import org.apache.catalina.LifecycleException;
-import org.apache.catalina.startup.Tomcat;
-
-import java.io.File;
-
-import static org.apache.dubbo.common.constants.CommonConstants.THREADS_KEY;
 import static org.apache.dubbo.common.constants.CommonConstants.DEFAULT_THREADS;
+import static org.apache.dubbo.common.constants.CommonConstants.THREADS_KEY;
 import static org.apache.dubbo.remoting.Constants.ACCEPTS_KEY;
 
 public class TomcatHttpServer extends AbstractHttpServer {
@@ -63,6 +62,8 @@ public class TomcatHttpServer extends AbstractHttpServer {
         tomcat.getConnector().setProperty("connectionTimeout", "60000");
 
         tomcat.getConnector().setProperty("maxKeepAliveRequests", "-1");
+
+        // vergilyn-comment, 2020-03-05 >>>> tomcat7 才存在 setProtocol方法。
         tomcat.getConnector().setProtocol("org.apache.coyote.http11.Http11NioProtocol");
 
         Context context = tomcat.addContext("/", baseDir);
