@@ -16,6 +16,19 @@
  */
 package org.apache.dubbo.config;
 
+import java.io.Serializable;
+import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.stream.Collectors;
+
+import javax.annotation.PostConstruct;
+
 import org.apache.dubbo.common.URL;
 import org.apache.dubbo.common.config.CompositeConfiguration;
 import org.apache.dubbo.common.config.Environment;
@@ -31,18 +44,6 @@ import org.apache.dubbo.config.context.ConfigManager;
 import org.apache.dubbo.config.support.Parameter;
 import org.apache.dubbo.rpc.model.ApplicationModel;
 import org.apache.dubbo.rpc.model.AsyncMethodInfo;
-
-import javax.annotation.PostConstruct;
-import java.io.Serializable;
-import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.stream.Collectors;
 
 import static org.apache.dubbo.common.utils.ReflectUtils.findMethodByMethodSignature;
 
@@ -570,7 +571,9 @@ public abstract class AbstractConfig implements Serializable {
      * Add {@link AbstractConfig instance} into {@link ConfigManager}
      * <p>
      * Current method will invoked by Spring or Java EE container automatically, or should be triggered manually.
-     *
+     * <p>vergilyn-comment, 2020-03-12 >>>> <br/>
+     *   调用顺序：Constructor >> @Autowired >> @PostConstruct
+     * </p>
      * @see ConfigManager#addConfig(AbstractConfig)
      * @since 2.7.5
      */

@@ -16,6 +16,8 @@
  */
 package org.apache.dubbo.config;
 
+import java.util.concurrent.atomic.AtomicBoolean;
+
 import org.apache.dubbo.common.extension.ExtensionLoader;
 import org.apache.dubbo.common.lang.ShutdownHookCallbacks;
 import org.apache.dubbo.common.logger.Logger;
@@ -27,8 +29,6 @@ import org.apache.dubbo.event.Event;
 import org.apache.dubbo.event.EventDispatcher;
 import org.apache.dubbo.registry.support.AbstractRegistryFactory;
 import org.apache.dubbo.rpc.Protocol;
-
-import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * The shutdown hook thread to do the clean up stuff.
@@ -86,17 +86,6 @@ public class DubboShutdownHook extends Thread {
     }
 
     /**
-     * Register the ShutdownHook
-     */
-    public void register() {
-        if (registered.compareAndSet(false, true)) {
-            DubboShutdownHook dubboShutdownHook = getDubboShutdownHook();
-            Runtime.getRuntime().addShutdownHook(dubboShutdownHook);
-            dispatch(new DubboShutdownHookRegisteredEvent(dubboShutdownHook));
-        }
-    }
-
-    /**
      * Unregister the ShutdownHook
      */
     public void unregister() {
@@ -104,6 +93,17 @@ public class DubboShutdownHook extends Thread {
             DubboShutdownHook dubboShutdownHook = getDubboShutdownHook();
             Runtime.getRuntime().removeShutdownHook(dubboShutdownHook);
             dispatch(new DubboShutdownHookUnregisteredEvent(dubboShutdownHook));
+        }
+    }
+
+    /**
+     * Register the ShutdownHook
+     */
+    public void register() {
+        if (registered.compareAndSet(false, true)) {
+            DubboShutdownHook dubboShutdownHook = getDubboShutdownHook();
+            Runtime.getRuntime().addShutdownHook(dubboShutdownHook);
+            dispatch(new DubboShutdownHookRegisteredEvent(dubboShutdownHook));
         }
     }
 

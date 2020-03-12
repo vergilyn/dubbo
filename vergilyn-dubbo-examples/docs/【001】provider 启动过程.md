@@ -45,6 +45,9 @@ public class ConfigurationBeanBindingRegistrar implements ImportBeanDefinitionRe
 }
 ```
 
+### 4. 执行顺序： Constructor >> @Autowired >> @PostConstruct
+             
+
 ## 2. `vergilyn-provider-examples`
 
 ```JAVA
@@ -183,3 +186,10 @@ org.apache.dubbo.rpc.RpcException: Unsupported server type: netty, url: dubbo://
     <version>${revision}</version>
 </dependency>
 ```
+
+
+2020-03-11 >>>>
+`DubboBootstrap#exportServices()`
+```
+configManager.getServices() 的 add时机？
+```    

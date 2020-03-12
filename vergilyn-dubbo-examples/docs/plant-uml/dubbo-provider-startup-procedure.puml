@@ -39,9 +39,6 @@ else
     --> config_common
 endif
 
---> "111"
-
-
 enable_dubbo --> "<color:808000>**@DubboComponentScan**</color>"
 note right
 ```
@@ -54,7 +51,28 @@ end note
 
 -->[ ] config_common
 note right
-
+```
+<color:red> 其中 registry `DubboBootstrapApplicationListener` </color>
+// Since 2.7.4 Register DubboBootstrapApplicationListener as an infrastructure Bean
+BeanRegistrar.registerInfrastructureBean(registry, DubboBootstrapApplicationListener.BEAN_NAME,
+        DubboBootstrapApplicationListener.class);
+```
 end note
 
+-->[ ] "DubboBootstrapApplicationListener"
+-->[ 伴随bean的实例化] "DubboBootstrapApplicationListener.onApplicationContextEvent"
+note right
+```
+@Override
+public void onApplicationContextEvent(ApplicationContextEvent event) {
+    if (event instanceof ContextRefreshedEvent) {
+        onContextRefreshedEvent((ContextRefreshedEvent) event);
+    } else if (event instanceof ContextClosedEvent) {
+        onContextClosedEvent((ContextClosedEvent) event);
+    }
+}
+```
+end note
+
+-->[ dubboBootstrap.start()] "DubboBootstrap#start()"
 @enduml

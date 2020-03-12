@@ -16,6 +16,23 @@
  */
 package org.apache.dubbo.config;
 
+import java.lang.reflect.Method;
+import java.net.InetAddress;
+import java.net.InetSocketAddress;
+import java.net.Socket;
+import java.net.SocketAddress;
+import java.net.UnknownHostException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
+
 import org.apache.dubbo.common.URL;
 import org.apache.dubbo.common.URLBuilder;
 import org.apache.dubbo.common.Version;
@@ -48,23 +65,6 @@ import org.apache.dubbo.rpc.model.ServiceDescriptor;
 import org.apache.dubbo.rpc.model.ServiceRepository;
 import org.apache.dubbo.rpc.service.GenericService;
 import org.apache.dubbo.rpc.support.ProtocolUtils;
-
-import java.lang.reflect.Method;
-import java.net.InetAddress;
-import java.net.InetSocketAddress;
-import java.net.Socket;
-import java.net.SocketAddress;
-import java.net.UnknownHostException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 
 import static org.apache.dubbo.common.constants.CommonConstants.ANYHOST_KEY;
 import static org.apache.dubbo.common.constants.CommonConstants.ANY_VALUE;
@@ -454,6 +454,9 @@ public class ServiceConfig<T> extends ServiceConfigBase<T> {
         String scope = url.getParameter(SCOPE_KEY);
         // don't export when none is configured
         if (!SCOPE_NONE.equalsIgnoreCase(scope)) {
+            /* vergilyn-comment, 2020-03-12 >>>> 例如 scope = null
+             *   下面2个if都会被执行，即 export-local 且 export-nacos（dubbo.registry.addr = nacos://127.0.0.1:8848）
+             */
 
             // export to local if the config is not remote (export to remote only when config is remote)
             if (!SCOPE_REMOTE.equalsIgnoreCase(scope)) {
@@ -489,6 +492,7 @@ public class ServiceConfig<T> extends ServiceConfigBase<T> {
                         Invoker<?> invoker = PROXY_FACTORY.getInvoker(ref, (Class) interfaceClass, registryURL.addParameterAndEncoded(EXPORT_KEY, url.toFullString()));
                         DelegateProviderMetaDataInvoker wrapperInvoker = new DelegateProviderMetaDataInvoker(invoker, this);
 
+                        // vergilyn-comment, 2020-03-12 >>>> PROTOCOL 例如 {@link RegistryProtocol#export(...)}
                         Exporter<?> exporter = PROTOCOL.export(wrapperInvoker);
                         exporters.add(exporter);
                     }
@@ -711,6 +715,14 @@ public class ServiceConfig<T> extends ServiceConfigBase<T> {
         configPostProcessors.forEach(component -> component.postProcessServiceConfig(this));
     }
 
+    public DubboBootstrap getBootstrap() {
+        return bootstrap;
+    }
+
+    public void setBootstrap(DubboBootstrap bootstrap) {
+        this.bootstrap = bootstrap;
+    }
+
     /**
      * Dispatch an {@link Event event}
      *
@@ -719,13 +731,5 @@ public class ServiceConfig<T> extends ServiceConfigBase<T> {
      */
     private void dispatch(Event event) {
         EventDispatcher.getDefaultExtension().dispatch(event);
-    }
-
-    public DubboBootstrap getBootstrap() {
-        return bootstrap;
-    }
-
-    public void setBootstrap(DubboBootstrap bootstrap) {
-        this.bootstrap = bootstrap;
     }
 }

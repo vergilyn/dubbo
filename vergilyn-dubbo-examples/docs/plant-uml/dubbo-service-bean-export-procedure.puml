@@ -1,0 +1,75 @@
+@startuml
+(*)  --> " org.apache.dubbo.config.spring.context.annotation.
+  <color:808000>**@DubboComponentScan**</color>"
+note right
+`@EnableDubbo` -> `@DubboComponentScan`
+end note
+
+-->[ @Import(...)] "DubboComponentScanRegistrar.class"
+
+-->[ registry] "ServiceAnnotationBeanPostProcessor.class"
+
+-->[ override #postProcessBeanDefinitionRegistry()] "ServiceAnnotationBeanPostProcessor#postProcessBeanDefinitionRegistry(...)"
+
+--> "ServiceAnnotationBeanPostProcessor#registerServiceBeans(...)"
+note right
+scan & registry 指定的 package （e.g. @EnableDubbo(scanBasePackages = "com.vergilyn.examples.service")）下的
+  - org.apache.dubbo.config.annotation.<color:808000>**@Service**</color>
+  - com.alibaba.dubbo.config.annotation.<color:808000>**--@Service--**</color>
+end note
+
+-->[ rootBeanDefinition -> ServiceBean.class] "ServiceBean.class"
+note right
+class ServiceBean<T> ... extends AbstractConfig
+end note
+
+-->[ `<color:808000>**@PostConstruct**</color>`] "AbstractConfig#addIntoConfigManager(...)"
+
+--> "ConfigManager#addConfig(...)"
+note right
+相当于将 `ServiceBean` 添加到 `ConfigManager`的成员变量：
+  `Map<String, Map<String, AbstractConfig>> configsCache`
+
+KEY: 表示的是config类型，比如 ServiceBean、RegistryConfig 等。
+VALUE:
+    KEY: 服务名，例如 com.vergilyn.examples.api.ProviderServiceApi
+    VALUE: 例如 之前registry（实例化后的）的 ServiceBean
+end note
+
+--> "DubboBootstrap#start(...)"
+note right
+由于在`@DubboComponentScan`/`@EnableDubboConfig`中都会registry `DubboBootstrapApplicationListener`
+其 override `ApplicationListener#onApplicationEvent(...)`
+end note
+
+-->[ export Dubbo Services] "DubboBootstrap#exportServices(...)"
+note right
+```
+private void exportServices() {
+    configManager.getServices().forEach(sc -> {
+        // TODO, compatible with ServiceConfig.export()
+        ServiceConfig serviceConfig = (ServiceConfig) sc;
+        serviceConfig.setBootstrap(this);
+
+        if (exportAsync) {
+            // 省略...
+        } else {
+            sc.export();
+            exportedServices.add(sc);
+        }
+    });
+}
+```
+end note
+
+--> "ServiceConfig#export(...)"
+--> "ServiceConfig#doExportUrlsFor1Protocol(...)"
+-->[ protocol -> RegistryProtocol] "RegistryProtocol#export(...)"
+--> "NacosRegistry#doRegister(...)"
+note right
+通过 nacos-client api 将 service 注册到 nacos。
+备注：暂不支持自定义NACOS_GROUP
+end note
+
+-->(*)
+@enduml
