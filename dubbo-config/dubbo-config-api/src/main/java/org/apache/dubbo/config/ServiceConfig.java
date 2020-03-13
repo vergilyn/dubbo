@@ -125,6 +125,10 @@ public class ServiceConfig<T> extends ServiceConfigBase<T> {
 
     /**
      * Whether the provider has been exported
+     * <p>vergilyn-comment, 2020-03-13 >>>> <br/>
+     *   "有时候我们只是想本地启动服务进行一些调试工作，我们并不希望把本地启动的服务暴露出去给别人调用。" <br/>
+     *   可通过<dubbo:provider export="false" /> 或 @Service(export = false) 在不同level进行设置 <br/>
+     * </p>
      */
     private transient volatile boolean exported;
 
@@ -303,6 +307,9 @@ public class ServiceConfig<T> extends ServiceConfigBase<T> {
     @SuppressWarnings({"unchecked", "rawtypes"})
     private void doExportUrls() {
         ServiceRepository repository = ApplicationModel.getServiceRepository();
+        /* vergilyn-comment, 2020-03-13 >>>>
+         *   #registerService()、#registerProvider() 只是添加本地的Map/List
+         */
         ServiceDescriptor serviceDescriptor = repository.registerService(getInterfaceClass());
         repository.registerProvider(
                 getUniqueServiceName(),
@@ -312,14 +319,19 @@ public class ServiceConfig<T> extends ServiceConfigBase<T> {
                 serviceMetadata
         );
 
+        // vergilyn-comment, 2020-03-13 >>>> 加载注册中心的URL
         List<URL> registryURLs = ConfigValidationUtils.loadRegistries(this, true);
 
+        // vergilyn-comment, 2020-03-13 >>>> 多协议多注册中心导出服务
         for (ProtocolConfig protocolConfig : protocols) {
             String pathKey = URL.buildKey(getContextPath(protocolConfig)
                     .map(p -> p + "/" + path)
                     .orElse(path), group, version);
+
             // In case user specified path, register service one more time to map it to path.
+            // vergilyn-comment, 2020-03-13 >>>> 如果用户指定了path，则多注册一次（到本地的Map/List，deduplicate）
             repository.registerService(pathKey, interfaceClass);
+
             // TODO, uncomment this line once service key is unified
             serviceMetadata.setServiceKey(pathKey);
             doExportUrlsFor1Protocol(protocolConfig, registryURLs);
@@ -332,6 +344,7 @@ public class ServiceConfig<T> extends ServiceConfigBase<T> {
             name = DUBBO;
         }
 
+        //region 构建（registry）URL参数，及对象
         Map<String, String> map = new HashMap<String, String>();
         map.put(SIDE_KEY, PROVIDER_SIDE);
 
@@ -348,7 +361,7 @@ public class ServiceConfig<T> extends ServiceConfigBase<T> {
         if (metadataReportConfig != null && metadataReportConfig.isValid()) {
             map.putIfAbsent(METADATA_KEY, REMOTE_METADATA_STORAGE_TYPE);
         }
-        if (CollectionUtils.isNotEmpty(getMethods())) {
+        if (CollectionUtils.isNotEmpty(getMethods())) {  // service method-level config
             for (MethodConfig method : getMethods()) {
                 AbstractConfig.appendParameters(map, method, method.getName());
                 String retryKey = method.getName() + ".retry";
@@ -361,7 +374,12 @@ public class ServiceConfig<T> extends ServiceConfigBase<T> {
                 List<ArgumentConfig> arguments = method.getArguments();
                 if (CollectionUtils.isNotEmpty(arguments)) {
                     for (ArgumentConfig argument : arguments) {
+                        /* vergilyn-comment, 2020-03-13 >>>>
+                         *   阅读方法，理解其中的 4个 if-branch
+                         */
+
                         // convert argument type
+                        // vergilyn-comment, 2020-03-13 >>>> branch-01
                         if (argument.getType() != null && argument.getType().length() > 0) {
                             Method[] methods = interfaceClass.getMethods();
                             // visit all methods
@@ -373,15 +391,23 @@ public class ServiceConfig<T> extends ServiceConfigBase<T> {
                                         Class<?>[] argtypes = methods[i].getParameterTypes();
                                         // one callback in the method
                                         if (argument.getIndex() != -1) {
+
+                                            /* vergilyn-comment, 2020-03-13 >>>> branch-02
+                                             *   检测 ArgumentConfig 中的 type 属性与方法参数列表中的参数名称是否一致，不一致则抛出异常
+                                             */
                                             if (argtypes[argument.getIndex()].getName().equals(argument.getType())) {
+
+                                                // 添加 ArgumentConfig 字段信息到 map 中，
+                                                // key-prefix = 方法名.index，比如: map = {"sayHello.3": true}
                                                 AbstractConfig.appendParameters(map, argument, method.getName() + "." + argument.getIndex());
                                             } else {
                                                 throw new IllegalArgumentException("Argument config error : the index attribute and type attribute not match :index :" + argument.getIndex() + ", type:" + argument.getType());
                                             }
-                                        } else {
+                                        } else {  // vergilyn-comment, 2020-03-13 >>>> branch-03
                                             // multiple callbacks in the method
                                             for (int j = 0; j < argtypes.length; j++) {
                                                 Class<?> argclazz = argtypes[j];
+                                                // 从参数类型列表中查找类型名称为 argument.type 的参数
                                                 if (argclazz.getName().equals(argument.getType())) {
                                                     AbstractConfig.appendParameters(map, argument, method.getName() + "." + j);
                                                     if (argument.getIndex() != -1 && argument.getIndex() != j) {
@@ -393,7 +419,7 @@ public class ServiceConfig<T> extends ServiceConfigBase<T> {
                                     }
                                 }
                             }
-                        } else if (argument.getIndex() != -1) {
+                        } else if (argument.getIndex() != -1) {  // branch-04 用户未配置 type 属性，但配置了 index 属性，且 index != -1
                             AbstractConfig.appendParameters(map, argument, method.getName() + "." + argument.getIndex());
                         } else {
                             throw new IllegalArgumentException("Argument config must set index or type attribute.eg: <dubbo:argument index='0' .../> or <dubbo:argument type=xxx .../>");
@@ -443,6 +469,7 @@ public class ServiceConfig<T> extends ServiceConfigBase<T> {
         String host = findConfigedHosts(protocolConfig, registryURLs, map);
         Integer port = findConfigedPorts(protocolConfig, name, map);
         URL url = new URL(name, host, port, getContextPath(protocolConfig).map(p -> p + "/" + path).orElse(path), map);
+        //endregion 构建（registry）URL参数，及对象
 
         // You can customize Configurator to append extra parameters
         if (ExtensionLoader.getExtensionLoader(ConfiguratorFactory.class)
@@ -489,10 +516,17 @@ public class ServiceConfig<T> extends ServiceConfigBase<T> {
                             registryURL = registryURL.addParameter(PROXY_KEY, proxy);
                         }
 
+                        /* vergilyn-comment, 2020-03-13 >>>> 重要，dubbo的核心模型 Invoker
+                         *   1. dubbo默认的 proxy_factory 是javassist。
+                         *   2. 重要，构建 wrapper-invoker，对其调用 invoke时，它有可能是一个本地的实现，也可能是一个远程的实现，也可能一个集群实现。
+                         */
+                        //
                         Invoker<?> invoker = PROXY_FACTORY.getInvoker(ref, (Class) interfaceClass, registryURL.addParameterAndEncoded(EXPORT_KEY, url.toFullString()));
                         DelegateProviderMetaDataInvoker wrapperInvoker = new DelegateProviderMetaDataInvoker(invoker, this);
 
-                        // vergilyn-comment, 2020-03-12 >>>> PROTOCOL 例如 {@link RegistryProtocol#export(...)}
+                        /* vergilyn-comment, 2020-03-12 >>>> 导出服务，并添加exporters
+                         *   PROTOCOL 例如 {@link RegistryProtocol#export(...)}
+                         */
                         Exporter<?> exporter = PROTOCOL.export(wrapperInvoker);
                         exporters.add(exporter);
                     }
@@ -529,6 +563,8 @@ public class ServiceConfig<T> extends ServiceConfigBase<T> {
                 .setHost(LOCALHOST_VALUE)
                 .setPort(0)
                 .build();
+
+        // 创建 Invoker，并导出服务，这里的 protocol 会在运行时调用 InjvmProtocol 的 export 方法
         Exporter<?> exporter = PROTOCOL.export(
                 PROXY_FACTORY.getInvoker(ref, (Class) interfaceClass, local));
         exporters.add(exporter);

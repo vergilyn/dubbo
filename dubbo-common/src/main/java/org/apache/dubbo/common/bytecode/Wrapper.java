@@ -16,9 +16,6 @@
  */
 package org.apache.dubbo.common.bytecode;
 
-import org.apache.dubbo.common.utils.ClassUtils;
-import org.apache.dubbo.common.utils.ReflectUtils;
-
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -31,6 +28,9 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.regex.Matcher;
+
+import org.apache.dubbo.common.utils.ClassUtils;
+import org.apache.dubbo.common.utils.ReflectUtils;
 
 /**
  * Wrapper.
@@ -109,6 +109,10 @@ public abstract class Wrapper {
             c = c.getSuperclass();
         }
 
+        /* vergilyn-question, 2020-03-13 >>>> 为什么并未用 WRAPPER_MAP 中的cache？
+         *   http://dubbo.apache.org/zh-cn/docs/source_code_guide/export-service.html
+         *   提到会用 WRAPPER_MAP 作为cache。
+         */
         if (c == Object.class) {
             return OBJECT_WRAPPER;
         }

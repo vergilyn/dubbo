@@ -16,6 +16,13 @@
  */
 package org.apache.dubbo.config.utils;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 import org.apache.dubbo.common.URL;
 import org.apache.dubbo.common.URLBuilder;
 import org.apache.dubbo.common.extension.ExtensionLoader;
@@ -60,13 +67,6 @@ import org.apache.dubbo.rpc.ProxyFactory;
 import org.apache.dubbo.rpc.cluster.Cluster;
 import org.apache.dubbo.rpc.cluster.LoadBalance;
 import org.apache.dubbo.rpc.support.MockInvoker;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import static org.apache.dubbo.common.constants.CommonConstants.ANYHOST_VALUE;
 import static org.apache.dubbo.common.constants.CommonConstants.CLUSTER_KEY;
@@ -177,15 +177,23 @@ public class ConfigValidationUtils {
                 if (StringUtils.isEmpty(address)) {
                     address = ANYHOST_VALUE;
                 }
+
+                /* vergilyn-comment, 2020-03-13 >>>>
+                 *   如果`dubbo.registry.address = N/A` 则跳过，并继续下一个registry判断
+                 */
                 if (!RegistryConfig.NO_AVAILABLE.equalsIgnoreCase(address)) {
                     Map<String, String> map = new HashMap<String, String>();
-                    AbstractConfig.appendParameters(map, application);
-                    AbstractConfig.appendParameters(map, config);
+
+                    AbstractConfig.appendParameters(map, application);  // 添加 ApplicationConfig 中的字段信息到 map 中
+                    AbstractConfig.appendParameters(map, config);  // 添加 RegistryConfig 字段信息到 map 中
                     map.put(PATH_KEY, RegistryService.class.getName());
+
                     AbstractInterfaceConfig.appendRuntimeParameters(map);
                     if (!map.containsKey(PROTOCOL_KEY)) {
                         map.put(PROTOCOL_KEY, DUBBO_PROTOCOL);
                     }
+
+                    // 解析得到 URL 列表，address 可能包含多个注册中心 ip，因此解析得到的是一个 URL 列表
                     List<URL> urls = UrlUtils.parseURLs(address, map);
 
                     for (URL url : urls) {
@@ -194,6 +202,11 @@ public class ConfigValidationUtils {
                                 .addParameter(REGISTRY_KEY, url.getProtocol())
                                 .setProtocol(extractRegistryType(url))
                                 .build();
+
+                        /* 通过判断条件，决定是否添加 url 到 registryList 中，条件如下：
+                         *    (服务提供者 && register = true 或 null)
+                         *      || (非服务提供者 && subscribe = true 或 null)
+                         */
                         if ((provider && url.getParameter(REGISTER_KEY, true))
                                 || (!provider && url.getParameter(SUBSCRIBE_KEY, true))) {
                             registryList.add(url);

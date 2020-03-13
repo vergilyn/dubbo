@@ -16,7 +16,19 @@
  */
 package org.apache.dubbo.remoting.transport.netty4;
 
+import java.net.InetSocketAddress;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.Map;
+
+import io.netty.bootstrap.ServerBootstrap;
+import io.netty.buffer.PooledByteBufAllocator;
+import io.netty.channel.ChannelFuture;
+import io.netty.channel.ChannelInitializer;
+import io.netty.channel.ChannelOption;
+import io.netty.channel.EventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
+import io.netty.handler.timeout.IdleStateHandler;
 import org.apache.dubbo.common.URL;
 import org.apache.dubbo.common.logger.Logger;
 import org.apache.dubbo.common.logger.LoggerFactory;
@@ -30,19 +42,6 @@ import org.apache.dubbo.remoting.RemotingServer;
 import org.apache.dubbo.remoting.transport.AbstractServer;
 import org.apache.dubbo.remoting.transport.dispatcher.ChannelHandlers;
 import org.apache.dubbo.remoting.utils.UrlUtils;
-
-import io.netty.bootstrap.ServerBootstrap;
-import io.netty.buffer.PooledByteBufAllocator;
-import io.netty.channel.ChannelFuture;
-import io.netty.channel.ChannelInitializer;
-import io.netty.channel.ChannelOption;
-import io.netty.channel.EventLoopGroup;
-import io.netty.handler.timeout.IdleStateHandler;
-
-import java.net.InetSocketAddress;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Map;
 
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static org.apache.dubbo.common.constants.CommonConstants.IO_THREADS_KEY;
@@ -86,6 +85,7 @@ public class NettyServer extends AbstractServer implements RemotingServer {
     protected void doOpen() throws Throwable {
         bootstrap = new ServerBootstrap();
 
+        // vergilyn-comment, 2020-03-13 >>>> 经典的 netty多线程模型 - Reactor
         bossGroup = NettyEventLoopFactory.eventLoopGroup(1, "NettyServerBoss");
         workerGroup = NettyEventLoopFactory.eventLoopGroup(
                 getUrl().getPositiveParameter(IO_THREADS_KEY, Constants.DEFAULT_IO_THREADS),

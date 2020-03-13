@@ -16,6 +16,10 @@
  */
 package org.apache.dubbo.remoting.transport;
 
+import java.net.InetSocketAddress;
+import java.util.Collection;
+import java.util.concurrent.ExecutorService;
+
 import org.apache.dubbo.common.URL;
 import org.apache.dubbo.common.extension.ExtensionLoader;
 import org.apache.dubbo.common.logger.Logger;
@@ -28,10 +32,6 @@ import org.apache.dubbo.remoting.ChannelHandler;
 import org.apache.dubbo.remoting.Constants;
 import org.apache.dubbo.remoting.RemotingException;
 import org.apache.dubbo.remoting.RemotingServer;
-
-import java.net.InetSocketAddress;
-import java.util.Collection;
-import java.util.concurrent.ExecutorService;
 
 import static org.apache.dubbo.common.constants.CommonConstants.ANYHOST_KEY;
 import static org.apache.dubbo.common.constants.CommonConstants.ANYHOST_VALUE;
@@ -68,7 +68,8 @@ public abstract class AbstractServer extends AbstractEndpoint implements Remotin
         this.accepts = url.getParameter(ACCEPTS_KEY, DEFAULT_ACCEPTS);
         this.idleTimeout = url.getParameter(IDLE_TIMEOUT_KEY, DEFAULT_IDLE_TIMEOUT);
         try {
-            doOpen();
+            doOpen();  // 调用模板方法 doOpen 启动服务器，一般都是子类实现
+
             if (logger.isInfoEnabled()) {
                 logger.info("Start " + getClass().getSimpleName() + " bind " + getBindAddress() + ", export " + getLocalAddress());
             }

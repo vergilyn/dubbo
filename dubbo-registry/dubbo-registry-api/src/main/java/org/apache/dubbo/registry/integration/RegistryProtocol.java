@@ -127,6 +127,10 @@ public class RegistryProtocol implements Protocol {
     //providerurl <--> exporter
     private final ConcurrentMap<String, ExporterChangeableWrapper<?>> bounds = new ConcurrentHashMap<>();
     private Cluster cluster;
+    /**
+     * vergilyn-question, 2020-03-13 >>>>
+     *   `dubbo.registry.protocol` or `dubbo.protocol.name`?
+     */
     private Protocol protocol;
     private RegistryFactory registryFactory;
     private ProxyFactory proxyFactory;
@@ -169,6 +173,10 @@ public class RegistryProtocol implements Protocol {
     }
 
     public void register(URL registryUrl, URL registeredProviderUrl) {
+        /* vergilyn-comment, 2020-03-13 >>>>
+         *   1. 获取 注册中心 实例
+         *   2. 向 注册中心 注册服务
+         */
         Registry registry = registryFactory.getRegistry(registryUrl);
         registry.register(registeredProviderUrl);
 
@@ -180,6 +188,7 @@ public class RegistryProtocol implements Protocol {
         ));
     }
 
+    // 上一步代码 org.apache.dubbo.config.ServiceConfig.doExportUrlsFor1Protocol
     @Override
     public <T> Exporter<T> export(final Invoker<T> originInvoker) throws RpcException {
         URL registryUrl = getRegistryUrl(originInvoker);
@@ -195,16 +204,27 @@ public class RegistryProtocol implements Protocol {
         overrideListeners.put(overrideSubscribeUrl, overrideSubscribeListener);
 
         providerUrl = overrideUrlWithConfig(providerUrl, overrideSubscribeListener);
+
+        /* vergilyn-comment, 2020-03-13 >>>>
+         *   重点，其中会 创建并开启 服务。
+         */
         //export invoker
         final ExporterChangeableWrapper<T> exporter = doLocalExport(originInvoker, providerUrl);
 
-        // url to registry vergilyn-comment, 2020-03-12 >>>> 例如 NacosRegistry
+        /* vergilyn-comment, 2020-03-12 >>>>
+         *   根据 originInvoker(URL) 加载 Registry 实现类，例如 NacosRegistry
+         */
+        // url to registry
         final Registry registry = getRegistry(originInvoker);
+
         final URL registeredProviderUrl = getUrlToRegistry(providerUrl, registryUrl);
         // decide if we need to delay publish
         boolean register = providerUrl.getParameter(REGISTER_KEY, true);
         if (register) {
-            // vergilyn-comment, 2020-03-12 >>>> 例如调用 {@link FailbackRegistry#register(...)} -> {@link NacosRegistry#doRegister(...)}
+            /* vergilyn-comment, 2020-03-12 >>>> 向注册中心注册服务
+             *   例如 将ServiceBean注册nacos，
+             *   {@link FailbackRegistry#register(...)} -> {@link NacosRegistry#doRegister(...)}
+             */
             register(registryUrl, registeredProviderUrl);
         }
 
@@ -240,6 +260,11 @@ public class RegistryProtocol implements Protocol {
     private <T> ExporterChangeableWrapper<T> doLocalExport(final Invoker<T> originInvoker, URL providerUrl) {
         String key = getCacheKey(originInvoker);
 
+        /* vergilyn-comment, 2020-03-13 >>>>
+         *   1. 创建 Invoker 为委托类对象
+         *   2. 调用 protocol 的 export 方法导出服务，例如 DubboProtocol
+         *   3. 写如cache "bounds"
+         */
         return (ExporterChangeableWrapper<T>) bounds.computeIfAbsent(key, s -> {
             Invoker<?> invokerDelegate = new InvokerDelegate<>(originInvoker, providerUrl);
             return new ExporterChangeableWrapper<>((Exporter<T>) protocol.export(invokerDelegate), originInvoker);

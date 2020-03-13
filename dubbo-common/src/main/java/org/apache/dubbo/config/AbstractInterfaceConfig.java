@@ -16,6 +16,13 @@
  */
 package org.apache.dubbo.config;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+
 import org.apache.dubbo.common.URL;
 import org.apache.dubbo.common.Version;
 import org.apache.dubbo.common.utils.Assert;
@@ -26,13 +33,6 @@ import org.apache.dubbo.common.utils.StringUtils;
 import org.apache.dubbo.config.context.ConfigManager;
 import org.apache.dubbo.config.support.Parameter;
 import org.apache.dubbo.rpc.model.ApplicationModel;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
 
 import static org.apache.dubbo.common.constants.CommonConstants.COMMA_SPLIT_PATTERN;
 import static org.apache.dubbo.common.constants.CommonConstants.DUBBO_VERSION_KEY;
@@ -188,6 +188,9 @@ public abstract class AbstractInterfaceConfig extends AbstractMethodConfig {
         }
     }
 
+    /**
+     * 添加 dubbo、release、timestamp、pid 参数
+     */
     public static void appendRuntimeParameters(Map<String, String> map) {
         map.put(DUBBO_VERSION_KEY, Version.getProtocolVersion());
         map.put(RELEASE_KEY, Version.getVersion());

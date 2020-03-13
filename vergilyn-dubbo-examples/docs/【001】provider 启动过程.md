@@ -187,6 +187,20 @@ org.apache.dubbo.rpc.RpcException: Unsupported server type: netty, url: dubbo://
 </dependency>
 ```
 
+#### 2.1.4 元数据`release`为 null的问题？
+- org.apache.dubbo.config.ServiceConfig#doExportUrls()
+
+TODO
+
+#### 2.1.5 Map属性无法绑定 例如`dubbo.registry.parameters.namespace=xxx`无法绑定到 RegistryConfig#parameters
++ [issues#2301](https://github.com/apache/dubbo/issues/2301)
++ [issues#4342](https://github.com/apache/dubbo/issues/4342)
++ [配置加载流程](http://dubbo.apache.org/zh-cn/docs/user/configuration/configuration-load-process.html)
+- com.alibaba.spring.beans.factory.annotation.ConfigurationBeanBindingPostProcessor#bindConfigurationBean()
+
+可以获取当`dubbo-provider.properties`中的配置参数，但无法绑定到 `RegistryConfig#parameters`
+
+TODO，查看issues貌似2.7.4解决，但个人在 2.7.6.release 下依然有问题，待排查。
 
 2020-03-11 >>>>
 `DubboBootstrap#exportServices()`

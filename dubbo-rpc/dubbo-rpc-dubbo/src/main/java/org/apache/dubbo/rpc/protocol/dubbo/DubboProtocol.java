@@ -16,6 +16,18 @@
  */
 package org.apache.dubbo.rpc.protocol.dubbo;
 
+import java.net.InetSocketAddress;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
+import java.util.function.Function;
+
 import org.apache.dubbo.common.URL;
 import org.apache.dubbo.common.URLBuilder;
 import org.apache.dubbo.common.config.ConfigurationUtils;
@@ -47,18 +59,6 @@ import org.apache.dubbo.rpc.RpcContext;
 import org.apache.dubbo.rpc.RpcException;
 import org.apache.dubbo.rpc.RpcInvocation;
 import org.apache.dubbo.rpc.protocol.AbstractProtocol;
-
-import java.net.InetSocketAddress;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
-import java.util.function.Function;
 
 import static org.apache.dubbo.common.constants.CommonConstants.GROUP_KEY;
 import static org.apache.dubbo.common.constants.CommonConstants.INTERFACE_KEY;
@@ -286,6 +286,7 @@ public class DubboProtocol extends AbstractProtocol {
         DubboExporter<T> exporter = new DubboExporter<T>(invoker, key, exporterMap);
         exporterMap.put(key, exporter);
 
+        //region 本地存根相关代码
         //export an stub service for dispatching event
         Boolean isStubSupportEvent = url.getParameter(STUB_EVENT_KEY, DEFAULT_STUB_EVENT);
         Boolean isCallbackservice = url.getParameter(IS_CALLBACK_SERVICE, false);
@@ -299,6 +300,7 @@ public class DubboProtocol extends AbstractProtocol {
 
             }
         }
+        //endregion 本地存根相关代码
 
         openServer(url);
         optimizeSerialization(url);
@@ -308,16 +310,22 @@ public class DubboProtocol extends AbstractProtocol {
 
     private void openServer(URL url) {
         // find server.
+        // vergilyn-comment, 2020-03-13 >>>> key -> ip:port
         String key = url.getAddress();
         //client can export a service which's only for server to invoke
         boolean isServer = url.getParameter(IS_SERVER_KEY, true);
         if (isServer) {
+            /* vergilyn-comment, 2020-03-13 >>>>
+             *   1. 双重检查锁
+             *   2. 因为 `key -> ip:port`，所以同一个端口上仅允许启动一个服务器实例。
+             *     若某个端口上已有服务器实例，此时则调用 reset 方法重置服务器的一些配置。
+             */
             ProtocolServer server = serverMap.get(key);
             if (server == null) {
                 synchronized (this) {
                     server = serverMap.get(key);
                     if (server == null) {
-                        serverMap.put(key, createServer(url));
+                        serverMap.put(key, createServer(url));  // 创建服务器实例
                     }
                 }
             } else {
@@ -327,6 +335,12 @@ public class DubboProtocol extends AbstractProtocol {
         }
     }
 
+    /**
+     * <p>vergilyn-comment, 2020-03-13 >>>> <br/>
+     *   create & open service(netty-server)
+     * </p>
+     * SEE: NettyServer#doOpen()
+     */
     private ProtocolServer createServer(URL url) {
         url = URLBuilder.from(url)
                 // send readonly event when server closes, it's enabled by default
@@ -343,6 +357,11 @@ public class DubboProtocol extends AbstractProtocol {
 
         ExchangeServer server;
         try {
+            /* vergilyn-comment, 2020-03-13 >>>> 重点跟踪关注
+             *   1. 服务的导出（服务的启动）
+             *   其中调用链 {@link Transporters#bind(...)} -..-> {@link NettyServer#doOpen()}
+             *   开启service的netty服务（reactor模型）。
+             */
             server = Exchangers.bind(url, requestHandler);
         } catch (RemotingException e) {
             throw new RpcException("Fail to start server(url: " + url + ") " + e.getMessage(), e);
@@ -350,6 +369,7 @@ public class DubboProtocol extends AbstractProtocol {
 
         str = url.getParameter(CLIENT_KEY);
         if (str != null && str.length() > 0) {
+            // 获取所有的 Transporter 实现类名称集合，比如 supportedTypes = [netty, mina]
             Set<String> supportedTypes = ExtensionLoader.getExtensionLoader(Transporter.class).getSupportedExtensions();
             if (!supportedTypes.contains(str)) {
                 throw new RpcException("Unsupported client type: " + str);

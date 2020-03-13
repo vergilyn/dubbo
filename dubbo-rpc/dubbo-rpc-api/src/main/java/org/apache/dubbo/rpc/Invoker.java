@@ -20,7 +20,10 @@ import org.apache.dubbo.common.Node;
 
 /**
  * Invoker. (API/SPI, Prototype, ThreadSafe)
- *
+ * <p>vergilyn-comment, 2020-03-13 >>>> <br/>
+ *   dubbo 的核心模型 Invoker，其它模型都向 Invoker 靠扰，或转换成 Invoker。 <br/>
+ *   Invoker代表一个可执行体，可向它发起 invoke 调用，<strong>它有可能是一个本地的实现，也可能是一个远程的实现，也可能一个集群实现。</strong>
+ * </p>
  * @see org.apache.dubbo.rpc.Protocol#refer(Class, org.apache.dubbo.common.URL)
  * @see org.apache.dubbo.rpc.InvokerListener
  * @see org.apache.dubbo.rpc.protocol.AbstractInvoker

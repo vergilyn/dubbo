@@ -51,8 +51,11 @@ public class Transporters {
         if (handlers.length == 1) {
             handler = handlers[0];
         } else {
+            // 如果 handlers 元素数量大于1，则创建 ChannelHandler 分发器
             handler = new ChannelHandlerDispatcher(handlers);
         }
+
+        // 默认 NettyTransporter
         return getTransporter().bind(url, handler);
     }
 
@@ -75,6 +78,12 @@ public class Transporters {
         return getTransporter().connect(url, handler);
     }
 
+    /**
+     * <p>vergilyn-comment, 2020-03-13 >>>> <br/>
+     *   运行时动态创建，根据传入的 URL 参数决定加载什么类型的 Transporter。默认：NettyTransporter <br/>
+     * </p>
+     * @return
+     */
     public static Transporter getTransporter() {
         return ExtensionLoader.getExtensionLoader(Transporter.class).getAdaptiveExtension();
     }
