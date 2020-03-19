@@ -17,23 +17,6 @@
 package org.apache.dubbo.registry.nacos;
 
 
-import org.apache.dubbo.common.URL;
-import org.apache.dubbo.common.URLBuilder;
-import org.apache.dubbo.common.logger.Logger;
-import org.apache.dubbo.common.logger.LoggerFactory;
-import org.apache.dubbo.common.utils.StringUtils;
-import org.apache.dubbo.common.utils.UrlUtils;
-import org.apache.dubbo.registry.NotifyListener;
-import org.apache.dubbo.registry.Registry;
-import org.apache.dubbo.registry.support.FailbackRegistry;
-
-import com.alibaba.nacos.api.exception.NacosException;
-import com.alibaba.nacos.api.naming.NamingService;
-import com.alibaba.nacos.api.naming.listener.EventListener;
-import com.alibaba.nacos.api.naming.listener.NamingEvent;
-import com.alibaba.nacos.api.naming.pojo.Instance;
-import com.alibaba.nacos.api.naming.pojo.ListView;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -47,6 +30,23 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
+
+import com.alibaba.nacos.api.exception.NacosException;
+import com.alibaba.nacos.api.naming.NamingService;
+import com.alibaba.nacos.api.naming.listener.EventListener;
+import com.alibaba.nacos.api.naming.listener.NamingEvent;
+import com.alibaba.nacos.api.naming.pojo.Instance;
+import com.alibaba.nacos.api.naming.pojo.ListView;
+
+import org.apache.dubbo.common.URL;
+import org.apache.dubbo.common.URLBuilder;
+import org.apache.dubbo.common.logger.Logger;
+import org.apache.dubbo.common.logger.LoggerFactory;
+import org.apache.dubbo.common.utils.StringUtils;
+import org.apache.dubbo.common.utils.UrlUtils;
+import org.apache.dubbo.registry.NotifyListener;
+import org.apache.dubbo.registry.Registry;
+import org.apache.dubbo.registry.support.FailbackRegistry;
 
 import static org.apache.dubbo.common.constants.CommonConstants.ANY_VALUE;
 import static org.apache.dubbo.common.constants.CommonConstants.GROUP_KEY;
@@ -213,8 +213,13 @@ public class NacosRegistry extends FailbackRegistry {
         if (serviceName.isConcrete()) { // is the concrete service name
             serviceNames = new LinkedHashSet<>();
             serviceNames.add(serviceName.toString());
+
+            /* vergilyn-question, 2020-03-18 >>>> 注释，由于"no provider available"
+             *   https://github.com/apache/dubbo/issues/5871
+             *   https://github.com/apache/dubbo/issues/5885
+             */
             // Add the legacy service name since 2.7.6
-            serviceNames.add(getLegacySubscribedServiceName(url));
+            // serviceNames.add(getLegacySubscribedServiceName(url));
         } else {
             serviceNames = filterServiceNames(serviceName);
         }
@@ -392,6 +397,11 @@ public class NacosRegistry extends FailbackRegistry {
         return serviceNames;
     }
 
+    /**
+     * <p>vergilyn-comment, 2020-03-18 >>>> <br/>
+     *   可能会生成URL "protocol = empty://..."，导致 "RegistryDirectory#forbidden = true"
+     * </p>
+     */
     private List<URL> toUrlWithEmpty(URL consumerURL, Collection<Instance> instances) {
         List<URL> urls = buildURLs(consumerURL, instances);
         if (urls.size() == 0) {
@@ -441,7 +451,9 @@ public class NacosRegistry extends FailbackRegistry {
             // Healthy Instances
             filterHealthyInstances(healthyInstances);
         }
+
         List<URL> urls = toUrlWithEmpty(url, healthyInstances);
+
         NacosRegistry.this.notify(url, listener, urls);
     }
 

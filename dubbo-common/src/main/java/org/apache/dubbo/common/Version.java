@@ -14,13 +14,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.apache.dubbo.common;
-
-import org.apache.dubbo.common.logger.Logger;
-import org.apache.dubbo.common.logger.LoggerFactory;
-import org.apache.dubbo.common.utils.ClassUtils;
-import org.apache.dubbo.common.utils.StringUtils;
-
 import java.io.IOException;
 import java.net.URL;
 import java.security.CodeSource;
@@ -31,6 +26,11 @@ import java.util.Map;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import org.apache.dubbo.common.logger.Logger;
+import org.apache.dubbo.common.logger.LoggerFactory;
+import org.apache.dubbo.common.utils.ClassUtils;
+import org.apache.dubbo.common.utils.StringUtils;
 
 /**
  * Version
@@ -45,7 +45,7 @@ public final class Version {
     // version 1.0.0 represents Dubbo rpc protocol before v2.6.2
     public static final int LEGACY_DUBBO_PROTOCOL_VERSION = 10000; // 1.0.0
     // Dubbo implementation version, usually is jar version.
-    private static final String VERSION = getVersion(Version.class, "");
+    private static final String VERSION = getVersion(Version.class, "2.7.6.RELEASE");  // vergilyn-comment, 2020-03-17 >>>> 强制默认2.7.6.RELEASE
 
     /**
      * For protocol compatibility purpose.

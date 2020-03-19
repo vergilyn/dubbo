@@ -1,51 +1,8 @@
 # 【001】provider 启动过程
 
-## 扩展知识
-### 1. `org.apache.dubbo.config.spring.context.annotation.DubboConfigConfigurationRegistrar`
-- `org.springframework.context.annotation.ImportBeanDefinitionRegistrar`
++ [服务导出（服务注册）](http://dubbo.apache.org/zh-cn/docs/source_code_guide/export-service.html)
 
-### 2. `org.apache.dubbo.config.spring.context.annotation.DubboConfigConfiguration`
-- `com.alibaba.spring.beans.factory.annotation.@EnableConfigurationBeanBinding`
-
-```
-@EnableConfigurationBeanBindings({
-        @EnableConfigurationBeanBinding(prefix = "dubbo.application", type = ApplicationConfig.class),
-        @EnableConfigurationBeanBinding(prefix = "dubbo.module", type = ModuleConfig.class),
-        @EnableConfigurationBeanBinding(prefix = "dubbo.registry", type = RegistryConfig.class),
-        @EnableConfigurationBeanBinding(prefix = "dubbo.protocol", type = ProtocolConfig.class),
-        @EnableConfigurationBeanBinding(prefix = "dubbo.monitor", type = MonitorConfig.class),
-        @EnableConfigurationBeanBinding(prefix = "dubbo.provider", type = ProviderConfig.class),
-        @EnableConfigurationBeanBinding(prefix = "dubbo.consumer", type = ConsumerConfig.class),
-        @EnableConfigurationBeanBinding(prefix = "dubbo.config-center", type = ConfigCenterBean.class),
-        @EnableConfigurationBeanBinding(prefix = "dubbo.metadata-report", type = MetadataReportConfig.class),
-        @EnableConfigurationBeanBinding(prefix = "dubbo.metrics", type = MetricsConfig.class),
-        @EnableConfigurationBeanBinding(prefix = "dubbo.ssl", type = SslConfig.class)
-})
-public static class Single {
-
-}
-```
-alibaba自己的扩展`com.alibaba.spring:spring-context-support:1.0.6`。
-猜测其用途： （意会~~~~）
-
-### 3. `org.springframework.context.EnvironmentAware`
-```
-// com.alibaba.spring:spring-context-support:1.0.6
-public class ConfigurationBeanBindingRegistrar implements ImportBeanDefinitionRegistrar, EnvironmentAware {
-    private ConfigurableEnvironment environment;
-
-    @Override
-    public void setEnvironment(Environment environment) {
-
-        Assert.isInstanceOf(ConfigurableEnvironment.class, environment);
-
-        this.environment = (ConfigurableEnvironment) environment;
-
-    }
-}
-```
-
-### 4. 执行顺序： Constructor >> @Autowired >> @PostConstruct
+![dubbo-service-bean-export-procedure](./plant-uml/dubbo_service_bean_export_procedure.png)
              
 
 ## 2. `vergilyn-provider-examples`
@@ -81,7 +38,7 @@ dubbo.protocol.name=dubbo
 dubbo.protocol.port=20880
 ```
 
-### 2.1 启动过程中遇到的问题
+### 2.1 FAQ
 
 #### 2.1.1 `The bean 'dubboBootstrapApplicationListener' could not be registered. A bean with that name has already been defined and overriding is disabled.`
 ```
@@ -187,23 +144,42 @@ org.apache.dubbo.rpc.RpcException: Unsupported server type: netty, url: dubbo://
 </dependency>
 ```
 
-#### 2.1.4 元数据`release`为 null的问题？
+#### 2.1.4 
+
+
+#### 2.1.5 metadata `release`为 null的问题？
 - org.apache.dubbo.config.ServiceConfig#doExportUrls()
+- --> org.apache.dubbo.config.AbstractInterfaceConfig.appendRuntimeParameters
+- --> org.apache.dubbo.common.Version#getVersion()
+
+`org.apache.dubbo.config.ReferenceConfig#createProxy() -> Version.getVersion()` 返回null
+
 
 TODO
 
-#### 2.1.5 Map属性无法绑定 例如`dubbo.registry.parameters.namespace=xxx`无法绑定到 RegistryConfig#parameters
+#### 2.1.6 Map属性无法绑定 例如`dubbo.registry.parameters.namespace=xxx`无法绑定到 RegistryConfig#parameters
 + [issues#2301](https://github.com/apache/dubbo/issues/2301)
 + [issues#4342](https://github.com/apache/dubbo/issues/4342)
++ [issues#4899](https://github.com/apache/dubbo/pull/4899)
 + [配置加载流程](http://dubbo.apache.org/zh-cn/docs/user/configuration/configuration-load-process.html)
 - com.alibaba.spring.beans.factory.annotation.ConfigurationBeanBindingPostProcessor#bindConfigurationBean()
+- org.springframework.beans.MutablePropertyValues (spring-beans-5.2.2.RELEASE.jar)
+
+```properties
+dubbo.application.parameters.item1=value1
+dubbo.application.parameters.item2=value2
+
+# issues#4899 中提到的另外语法（dubbo v2.7.4+）
+dubbo.application.parameters=[{item1:value1}, {item2:value2}]
+```
 
 可以获取当`dubbo-provider.properties`中的配置参数，但无法绑定到 `RegistryConfig#parameters`
 
-TODO，查看issues貌似2.7.4解决，但个人在 2.7.6.release 下依然有问题，待排查。
+查看issues貌似2.7.4解决，但个人在 2.7.6.release 下依然有问题，待排查。
 
-2020-03-11 >>>>
-`DubboBootstrap#exportServices()`
+2020-03-16 >>>>  
+```properties
+# spring-beans v5.2.2.RELEASE 中正确的语法
+dubbo.application.parameters[item1]=value1
+dubbo.application.parameters[item2]=value2
 ```
-configManager.getServices() 的 add时机？
-```    

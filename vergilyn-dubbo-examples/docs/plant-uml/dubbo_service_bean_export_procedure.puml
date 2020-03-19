@@ -68,7 +68,10 @@ end note
 --> "NacosRegistry#doRegister(...)"
 note right
 通过 nacos-client api 将 service 注册到 nacos。
-备注：暂不支持自定义NACOS_GROUP
+备注：nacos的扩展配置可以通过扩展参数指定。
+```
+dubbo.registry.parameters[namespace]=xxxx
+```
 end note
 
 -->(*)

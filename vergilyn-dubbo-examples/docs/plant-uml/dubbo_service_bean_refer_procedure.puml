@@ -1,0 +1,43 @@
+@startuml
+(*)  --> "org.apache.dubbo.config.annotation.
+    <color:808000>**@Reference**</color>"
+note right
+@EnableDubbo
+  -> @EnableDubboConfig / @DubboComponentScan
+    -> DubboConfigConfigurationRegistrar / DubboComponentScanRegistrar
+      -> org.apache.dubbo.config.spring.util.DubboBeanUtils#registerCommonBeans(...)
+
+```
+BeanRegistrar.registerInfrastructureBean(registry, ReferenceAnnotationBeanPostProcessor.BEAN_NAME,
+        ReferenceAnnotationBeanPostProcessor.class);
+```
+end note
+
+--> "ReferenceAnnotationBeanPostProcessor.class"
+note right
+（主要需要裂解 spring bean lifecycle）
+通过上一步，已经 registry `ReferenceAnnotationBeanPostProcessor`，看一下该类的继承/实现关系
+```
+class ReferenceAnnotationBeanPostProcessor (alibaba-spring-context-support)
+  extends AbstractAnnotationBeanPostProcessor (alibaba-spring-context-support)
+    extends InstantiationAwareBeanPostProcessorAdapter (spring-beans)
+      extends BeanPostProcessor (spring-beans)
+```
+
+`InstantiationAwareBeanPostProcessor#postProcessPropertyValues(...)`：
+  在spring处理完默认的成员属性，应用到指定的bean之前进行回调，可以用来检查和修改属性，
+  最终返回的PropertyValues会应用到bean中。
+
+该方法在`AbstractAnnotationBeanPostProcessor`中重写，并调用`InjectionMetadata#inject()`。
+内部类中重写`AbstractAnnotationBeanPostProcessor$AnnotatedFieldElement`中重写 inject()方法。
+
+所以，下来会调用到`ReferenceAnnotationBeanPostProcessor#doGetInjectedBean(...)`。
+end note
+
+--> "ReferenceAnnotationBeanPostProcessor#doGetInjectedBean(...)"
+
+--> "ReferenceConfig#get(...)"
+
+-->[ ReferenceConfig#init(...) ] "ReferenceConfig#createProxy(...)"
+
+@enduml

@@ -16,16 +16,17 @@
  */
 package org.apache.dubbo.rpc.cluster;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.stream.Collectors;
+
 import org.apache.dubbo.common.URL;
 import org.apache.dubbo.common.extension.ExtensionLoader;
 import org.apache.dubbo.common.utils.CollectionUtils;
 import org.apache.dubbo.rpc.Invocation;
 import org.apache.dubbo.rpc.Invoker;
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.stream.Collectors;
+import org.apache.dubbo.rpc.cluster.support.AbstractClusterInvoker;
 
 /**
  * Router chain
@@ -88,7 +89,11 @@ public class RouterChain<T> {
     }
 
     /**
-     *
+     * <p>vergilyn-comment, 2020-03-18 >>>> <br/>
+     *   如果`{@link #invokers} == EMPTY`，那么基本都是`return empty`。<br/>
+     *   所以 {@link RegistryDirectory#doList(...)}、{@link AbstractClusterInvoker#invoke(Invocation)} 中不存在 invokers，
+     *   导致"No provider available for the service..."
+     * </p>
      * @param url
      * @param invocation
      * @return

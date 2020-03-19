@@ -159,6 +159,7 @@ public abstract class AbstractInterfaceConfig extends AbstractMethodConfig {
 
     /**
      * The url of the reference service
+     * vergilyn-comment, 2020-03-17 >>>> see, dubbo-config-api, ReferenceConfig#createProxy(java.util.Map)
      */
     protected final List<URL> urls = new ArrayList<URL>();
 

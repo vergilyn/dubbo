@@ -23,7 +23,8 @@ public class ProviderServiceApiImpl implements ProviderServiceApi {
 
     @Override
     public String sayHello(String name) {
-        sleep();
+        // sleep();
+        System.out.println("sayHello");
         return String.format("[%s] >>>>>>>> Hello, %s", serviceName, name);
     }
 

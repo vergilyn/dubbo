@@ -19,6 +19,7 @@
         <module>vergilyn-provider-examples</module>
         <module>vergilyn-consumer-examples</module>
         <module>vergilyn-api-examples</module>
+        <module>dubbo-samples-nacos-registry</module>
     </modules>
 
     <properties>
