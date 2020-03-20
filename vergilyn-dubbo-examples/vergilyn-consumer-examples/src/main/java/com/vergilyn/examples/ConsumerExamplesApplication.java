@@ -1,7 +1,8 @@
 package com.vergilyn.examples;
 
 import com.vergilyn.examples.api.ApiConstants;
-import com.vergilyn.examples.api.ProviderServiceApi;
+import com.vergilyn.examples.api.ProviderFirstApi;
+import com.vergilyn.examples.api.ProviderSecondApi;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.dubbo.config.annotation.Reference;
@@ -18,7 +19,9 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 public class ConsumerExamplesApplication implements CommandLineRunner {
 
     @Reference(version = ApiConstants.SERVICE_VERSION, timeout = 5000, check = false)
-    private ProviderServiceApi providerServiceApi;
+    private ProviderFirstApi firstApi;
+    @Reference(version = ApiConstants.SERVICE_VERSION, timeout = 5000, check = true)
+    private ProviderSecondApi secondApi;
 
     public static void main(String[] args) {
         SpringApplication application = new SpringApplication(ConsumerExamplesApplication.class);
@@ -27,6 +30,9 @@ public class ConsumerExamplesApplication implements CommandLineRunner {
 
     @Override
     public void run(String... args) throws Exception {
-        log.info(providerServiceApi.sayHello("vergilyn"));
+        log.info(firstApi.sayHello("vergilyn"));
+        log.info(secondApi.print("vergilyn"));
+
+        log.info(">>>> finish <<<<");
     }
 }

@@ -4,6 +4,7 @@
 + [https://github.com/apache/dubbo-spring-boot-project][github, dubbo-spring-boot-project]
 + [https://github.com/apache/dubbo-admin][github, dubbo-admin]
 + [https://github.com/apache/dubbo-samples][github, dubbo-samples]
++ [http://dubbo.apache.org/schema/dubbo/dubbo.xsd][dubbo.xsd]
 
 
 参考：

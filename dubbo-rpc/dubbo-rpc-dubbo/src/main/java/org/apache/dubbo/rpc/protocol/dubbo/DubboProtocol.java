@@ -420,6 +420,7 @@ public class DubboProtocol extends AbstractProtocol {
     public <T> Invoker<T> protocolBindingRefer(Class<T> serviceType, URL url) throws RpcException {
         optimizeSerialization(url);
 
+        // vergilyn-comment, 2020-03-20 >>>> 重要 #getClients(url)
         // create rpc invoker.
         DubboInvoker<T> invoker = new DubboInvoker<T>(serviceType, url, getClients(url), invokers);
         invokers.add(invoker);
@@ -444,6 +445,10 @@ public class DubboProtocol extends AbstractProtocol {
             String shareConnectionsStr = url.getParameter(SHARE_CONNECTIONS_KEY, (String) null);
             connections = Integer.parseInt(StringUtils.isBlank(shareConnectionsStr) ? ConfigUtils.getProperty(SHARE_CONNECTIONS_KEY,
                     DEFAULT_SHARE_CONNECTIONS) : shareConnectionsStr);
+
+            /* vergilyn-comment, 2020-03-20 >>>> dubbo 默认 share-connect
+             *   #getSharedClient() 中也调用了 #initClient()
+             */
             shareClients = getSharedClient(url, connections);
         }
 
@@ -468,6 +473,8 @@ public class DubboProtocol extends AbstractProtocol {
      */
     private List<ReferenceCountExchangeClient> getSharedClient(URL url, int connectNum) {
         String key = url.getAddress();
+
+        // 获取带有“引用计数”功能的 ExchangeClient
         List<ReferenceCountExchangeClient> clients = referenceClientMap.get(key);
 
         if (checkClientCanUse(clients)) {
@@ -501,7 +508,7 @@ public class DubboProtocol extends AbstractProtocol {
                         continue;
                     }
 
-                    referenceCountExchangeClient.incrementAndGetCount();
+                    referenceCountExchangeClient.incrementAndGetCount();  // 递增 "引用计数"
                 }
             }
 
@@ -609,7 +616,7 @@ public class DubboProtocol extends AbstractProtocol {
                 client = new LazyConnectExchangeClient(url, requestHandler);
 
             } else {
-                client = Exchangers.connect(url, requestHandler);
+                client = Exchangers.connect(url, requestHandler);  // 重点关注下
             }
 
         } catch (RemotingException e) {

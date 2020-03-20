@@ -3,7 +3,7 @@ package com.vergilyn.examples.service;
 import java.util.concurrent.TimeUnit;
 
 import com.vergilyn.examples.api.ApiConstants;
-import com.vergilyn.examples.api.ProviderServiceApi;
+import com.vergilyn.examples.api.ProviderFirstApi;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -15,7 +15,7 @@ import org.springframework.beans.factory.annotation.Value;
 @org.apache.dubbo.config.annotation.Service(version = ApiConstants.SERVICE_VERSION
         /*, methods = {@Method(name = "sayGoodbye", timeout = 250, retries = 0)}*/)
 @Slf4j
-public class ProviderServiceApiImpl implements ProviderServiceApi {
+public class ProviderFirstApiImpl implements ProviderFirstApi {
 
     /**
      * The default value of ${dubbo.application.name} is ${spring.application.name}
@@ -27,13 +27,13 @@ public class ProviderServiceApiImpl implements ProviderServiceApi {
     public String sayHello(String name) {
         sleep();
         log.info("sayHello(String name) >>>> arg: {}", name);
-        return String.format("[%s] >>>>>>>> Hello, %s", serviceName, name);
+        return String.format("[%s][%s] >>>>>>>> Hello, %s", serviceName, this.getClass().getSimpleName(), name);
     }
 
     @Override
     public String sayGoodbye(String name) {
         sleep();
-        return String.format("[%s] >>>>>>>> Goodbye, %s", serviceName, name);
+        return String.format("[%s][%s] >>>>>>>> Goodbye, %s", serviceName, this.getClass().getSimpleName(), name);
     }
 
     private void sleep(){

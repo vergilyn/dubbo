@@ -16,6 +16,11 @@
  */
 package org.apache.dubbo.remoting.transport;
 
+import java.net.InetSocketAddress;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
+
 import org.apache.dubbo.common.URL;
 import org.apache.dubbo.common.Version;
 import org.apache.dubbo.common.extension.ExtensionLoader;
@@ -30,11 +35,6 @@ import org.apache.dubbo.remoting.Client;
 import org.apache.dubbo.remoting.Constants;
 import org.apache.dubbo.remoting.RemotingException;
 import org.apache.dubbo.remoting.transport.dispatcher.ChannelHandlers;
-
-import java.net.InetSocketAddress;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
 
 import static org.apache.dubbo.common.constants.CommonConstants.DEFAULT_CLIENT_THREADPOOL;
 import static org.apache.dubbo.common.constants.CommonConstants.THREADPOOL_KEY;
@@ -59,6 +59,9 @@ public abstract class AbstractClient extends AbstractEndpoint implements Client 
         initExecutor(url);
 
         try {
+            /* vergilyn-comment, 2020-03-20 >>>> 模版方法
+             *   例如 netty4.NettyClient#doOpen() `new Netty.Bootstrap()`
+             */
             doOpen();
         } catch (Throwable t) {
             close();
@@ -67,6 +70,11 @@ public abstract class AbstractClient extends AbstractEndpoint implements Client 
                             + " connect to the server " + getRemoteAddress() + ", cause: " + t.getMessage(), t);
         }
         try {
+            /* vergilyn-comment, 2020-03-20 >>>> 模版方法，实际调用子类的 #doConnect
+             *   例如 netty4.NettyClient#doConnect()
+             *   通过 doOpen() 构造的 NettyBootstrap，创建其连接 `bootstrap.connect(getConnectAddress())`。
+             *   这一步，consumer 与 provider 已经创建了connect （通过 wireshark 可知 3次握手 已经完成）
+             */
             // connect.
             connect();
             if (logger.isInfoEnabled()) {
@@ -188,6 +196,7 @@ public abstract class AbstractClient extends AbstractEndpoint implements Client 
                 return;
             }
 
+            // 模版方法，例如 netty4.NettyClient#doConnect()
             doConnect();
 
             if (!isConnected()) {

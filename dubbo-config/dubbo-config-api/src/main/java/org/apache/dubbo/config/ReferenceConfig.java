@@ -340,6 +340,11 @@ public class ReferenceConfig<T> extends ReferenceConfigBase<T> {
             // vergilyn-comment, 2020-03-19 >>>> 获取 invoker 是相当重要的方法！！！
             // 单个注册中心或服务提供者(服务直连，下同)
             if (urls.size() == 1) {
+                /* vergilyn-comment, 2020-03-20 >>>> REF_PROTOCOL -> RegistryProtocol、DubboProtocol
+                 *   consumer-side, 针对不同的 ip:port 会创建对应数量的 Netty.Bootstrap，并立即 connect （3次握手完成。）
+                 *   如果是 lazy，则 Bootstrap & connect 都延迟到第一次请求时再执行！
+                 */
+
                 invoker = REF_PROTOCOL.refer(interfaceClass, urls.get(0));
 
             } else {

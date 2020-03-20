@@ -67,14 +67,18 @@ public class Transporters {
         if (url == null) {
             throw new IllegalArgumentException("url == null");
         }
+
         ChannelHandler handler;
         if (handlers == null || handlers.length == 0) {
             handler = new ChannelHandlerAdapter();
         } else if (handlers.length == 1) {
             handler = handlers[0];
         } else {
+            // 如果 handler 数量大于1，则创建一个 ChannelHandler 分发器
             handler = new ChannelHandlerDispatcher(handlers);
         }
+
+        // 默认 NettyTransporter，创建NettyClient
         return getTransporter().connect(url, handler);
     }
 

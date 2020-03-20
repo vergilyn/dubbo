@@ -2,7 +2,6 @@
 
 + [服务引用（服务发现）](http://dubbo.apache.org/zh-cn/docs/source_code_guide/refer-service.html)
 
-
 ## 2. `vergilyn-consumer-examples`
 
 ```java
@@ -345,62 +344,89 @@ provider并未提供该service，其提供的是"com.vergilyn.examples.api.Provi
 > https://github.com/apache/dubbo/issues/5871
 > 生成empty的protocol是正常的。否则会出现服务端全部下线，但是客户端还有一个订阅的服务端的代理一直存在的情况
 
-#### 2.1.2 "Invoke remote method timeout."
-基于 `2.1.1` 解决方案后产生的exception。  
-其中的 `169.254.**.***`、`10.2.**.**`都是本机的IP （即 127.0.0.1）
-```text
-Caused by: org.apache.dubbo.rpc.RpcException: Failed to invoke the method sayHello in the service com.vergilyn.examples.api.ProviderServiceApi. 
-Tried 3 times of the providers [169.254.**.***:20880] (1/1) from the registry localhost:8848 
-on the consumer 10.2.**.** using the dubbo version 2.7.6.RELEASE. 
-Last error is: Invoke remote method timeout. method: sayHello, 
-provider: dubbo://169.254.**.***:20880/com.vergilyn.examples.api.ProviderServiceApi
-    ?anyhost=true&application=dubbo-consumer-application
-    &category=providers&check=false&deprecated=false
-    &dubbo=2.0.2&dynamic=true&generic=false&init=false
-    &interface=com.vergilyn.examples.api.ProviderServiceApi
-    &methods=sayHello,sayGoodbye
-    &path=com.vergilyn.examples.api.ProviderServiceApi
-    &pid=6420&protocol=dubbo
-    &register.ip=10.2.**.**&release=2.7.6.RELEASE
-    &remote.application=dubbo-provider-application&revision=1.0.0
-    &side=consumer&sticky=false&timeout=5000&timestamp=1584606320503&version=1.0.0,
-cause: org.apache.dubbo.remoting.TimeoutException: Waiting server-side response timeout by scan timer. 
-start time: 2020-03-19 16:30:03.495, end time: 2020-03-19 16:30:08.504, 
-client elapsed: 0 ms, server elapsed: 5009 ms, timeout: 5000 ms, 
-request: Request [id=2, version=2.0.2, twoway=true, event=false, broken=false, data=RpcInvocation [methodName=sayHello, 
-    parameterTypes=[class java.lang.String], arguments=[vergilyn], 
-    attachments={path=com.vergilyn.examples.api.ProviderServiceApi, 
-    remote.application=dubbo-consumer-application, 
-    interface=com.vergilyn.examples.api.ProviderServiceApi, version=1.0.0, timeout=5000}]], channel: /169.254.**.***:65396 -> /169.254.**.***:20880
-	at org.apache.dubbo.rpc.cluster.support.FailoverClusterInvoker.doInvoke(FailoverClusterInvoker.java:113) ~[classes/:na]
-	at org.apache.dubbo.rpc.cluster.support.AbstractClusterInvoker.invoke(AbstractClusterInvoker.java:259) ~[classes/:na]
-	at org.apache.dubbo.rpc.cluster.interceptor.ClusterInterceptor.intercept(ClusterInterceptor.java:47) ~[classes/:na]
-	at org.apache.dubbo.rpc.cluster.support.wrapper.AbstractCluster$InterceptorInvokerNode.invoke(AbstractCluster.java:92) ~[classes/:na]
-	at org.apache.dubbo.rpc.cluster.support.wrapper.MockClusterInvoker.invoke(MockClusterInvoker.java:82) ~[classes/:na]
-	at org.apache.dubbo.rpc.proxy.InvokerInvocationHandler.invoke(InvokerInvocationHandler.java:74) ~[classes/:na]
-	at org.apache.dubbo.common.bytecode.proxy0.sayHello(proxy0.java) ~[classes/:na]
-	at com.vergilyn.examples.ConsumerExamplesApplication.run(ConsumerExamplesApplication.java:30) [classes/:na]
-	at org.springframework.boot.SpringApplication.callRunner(SpringApplication.java:784) ~[spring-boot-2.2.2.RELEASE.jar:2.2.2.RELEASE]
-	... 3 common frames omitted
-Caused by: java.util.concurrent.ExecutionException: org.apache.dubbo.remoting.TimeoutException: Waiting server-side response timeout by scan timer.
-    start time: 2020-03-19 16:30:03.495, 
-    end time: 2020-03-19 16:30:08.504, 
-    client elapsed: 0 ms, server elapsed: 5009 ms, timeout: 5000 ms, 
-    request: Request [id=2, version=2.0.2, twoway=true, event=false, broken=false, data=RpcInvocation [methodName=sayHello, 
-        parameterTypes=[class java.lang.String], arguments=[vergilyn], 
-        attachments={path=com.vergilyn.examples.api.ProviderServiceApi, 
-        remote.application=dubbo-consumer-application, 
-        interface=com.vergilyn.examples.api.ProviderServiceApi, version=1.0.0, timeout=5000}]], 
-    channel: /169.254.65.244:65396 -> /169.254.65.244:20880
-	at java.util.concurrent.CompletableFuture.reportGet(CompletableFuture.java:357) ~[na:1.8.0_171]
-	at java.util.concurrent.CompletableFuture.get(CompletableFuture.java:1915) ~[na:1.8.0_171]
-	at org.apache.dubbo.rpc.AsyncRpcResult.get(AsyncRpcResult.java:181) ~[classes/:na]
-    ......
-```
 
+备注：以上这个过程就是 consumer-side 创建 service-proxy的过程。
+
+#### 2.1.2 "Invoke remote method timeout."
 1. provider 已启动，并在nacos注册了正确的service。
 2. `telnet 127.0.0.1 20880`正常（provider中配置的 dubbo/netty 通信端口）
+3. 分析是 consumer-side 还是 provider-side 出现问题（个人遇到的是 provider忘记依赖 hessian2）
 
-其实已经到达 provider，但是consumer使用的序列化方式是 hessian2。但是在provider忘记依赖 hessian2（不清楚默认序列化方式什么）。
-所以导致 序列化错误，provider无法正常处理。
+#### 2.1.3 netty 对象实例数/连接数？
+consumer 在启动时 扫描到 `@Reference`时会创建 invoker，进而创建 netty-bootstrap。
 
+```java
+package org.apache.dubbo.config;
+
+public class ReferenceConfig<T> extends ReferenceConfigBase<T> {
+    
+    private static final Protocol REF_PROTOCOL = ExtensionLoader.getExtensionLoader(Protocol.class).getAdaptiveExtension();
+    
+    private T createProxy(Map<String, String> map) {
+        invoker = REF_PROTOCOL.refer(interfaceClass, urls.get(0));
+    }
+}
+```
+
+由声明可知，Protocol(DubboProtocol) 是 静态常量。  
+每次调用 `refer()` 会 `new AsyncToSyncInvoker()`进而 `new DubboInvoker()`。  
+但是，其中的核心`DubboProtocol#getClients()`，因为默认是 share-connection :  
+```java
+package org.apache.dubbo.rpc.protocol.dubbo;
+
+public class DubboProtocol extends AbstractProtocol {
+    /**
+     * <host:port,Exchanger>
+     */
+    private final Map<String, List<ReferenceCountExchangeClient>> referenceClientMap = new ConcurrentHashMap<>();
+
+    private List<ReferenceCountExchangeClient> getSharedClient(URL url, int connectNum) {
+        String key = url.getAddress();
+
+        // 获取带有“引用计数”功能的 ExchangeClient
+        List<ReferenceCountExchangeClient> clients = referenceClientMap.get(key);
+
+        if (checkClientCanUse(clients)) {
+            batchClientRefIncr(clients);
+            return clients;
+        }
+        // 省略...
+    }
+}
+```
+
+由上一步知道，其实 DubboProtocol 是同一个对象，所以可以`referenceClientMap`即client缓存。  
+所以，针对不同 address 会创建多个 Netty.Bootstrap （并且会 立即connect，）。
+（如果 lazy，Bootstrap 和 connect 都会在第一次请求时再执行）
+
+**扩展：**  
+如果 address 不存在，则会 initClient （DubboProtocol#initClient(url)）。  
+如果 non-lazy，那么则会 constructor `NettyClient extends AbstractClient `。 
+
+`AbstractClient` 的构造函数是一个 模版方法。
+```java
+package org.apache.dubbo.remoting.transport;
+
+public abstract class AbstractClient extends AbstractEndpoint implements Client {
+
+    public AbstractClient(URL url, ChannelHandler handler) throws RemotingException {
+        super(url, handler);
+        
+        needReconnect = url.getParameter(Constants.SEND_RECONNECT_KEY, false);
+        
+        initExecutor(url);
+        
+        /* vergilyn-comment, 2020-03-20 >>>> 模版方法
+         *   例如 netty4.NettyClient#doOpen() `new Netty.Bootstrap()`
+         */
+        doOpen();
+
+        /* vergilyn-comment, 2020-03-20 >>>> 模版方法，实际调用子类的 #doConnect
+         *   例如 netty4.NettyClient#doConnect()
+         *   通过 doOpen() 构造的 NettyBootstrap，创建其连接 `bootstrap.connect(getConnectAddress())`。
+         *   这一步，consumer 与 provider 已经创建了connect （通过 wireshark 可知 3次握手 已经完成）
+         */
+        connect();
+    }
+}
+```

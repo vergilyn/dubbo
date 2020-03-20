@@ -106,6 +106,9 @@ public class Exchangers {
             throw new IllegalArgumentException("handler == null");
         }
         url = url.addParameterIfAbsent(Constants.CODEC_KEY, "exchange");
+
+        // 获取 Exchanger 实例，默认为 HeaderExchangeClient
+        // 后续重要代码 netty4.NettyTransporter#connect(..)，创建 NettyClient
         return getExchanger(url).connect(url, handler);
     }
 
