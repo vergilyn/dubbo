@@ -5,6 +5,7 @@ import java.util.concurrent.TimeUnit;
 import com.vergilyn.examples.api.ApiConstants;
 import com.vergilyn.examples.api.ProviderServiceApi;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 
 /**
@@ -13,6 +14,7 @@ import org.springframework.beans.factory.annotation.Value;
  */
 @org.apache.dubbo.config.annotation.Service(version = ApiConstants.SERVICE_VERSION
         /*, methods = {@Method(name = "sayGoodbye", timeout = 250, retries = 0)}*/)
+@Slf4j
 public class ProviderServiceApiImpl implements ProviderServiceApi {
 
     /**
@@ -23,8 +25,8 @@ public class ProviderServiceApiImpl implements ProviderServiceApi {
 
     @Override
     public String sayHello(String name) {
-        // sleep();
-        System.out.println("sayHello");
+        sleep();
+        log.info("sayHello(String name) >>>> arg: {}", name);
         return String.format("[%s] >>>>>>>> Hello, %s", serviceName, name);
     }
 

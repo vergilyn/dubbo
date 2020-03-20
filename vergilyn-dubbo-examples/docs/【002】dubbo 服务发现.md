@@ -404,6 +404,3 @@ Caused by: java.util.concurrent.ExecutionException: org.apache.dubbo.remoting.Ti
 其实已经到达 provider，但是consumer使用的序列化方式是 hessian2。但是在provider忘记依赖 hessian2（不清楚默认序列化方式什么）。
 所以导致 序列化错误，provider无法正常处理。
 
-**2020-03-19，尽快解决log打印不完整问题。例如此exception，在provider端并没有任何异常，但实际源码中有打印log，但是console缺没有。**
-（"2.1.1"也遇到了，部分dubbo源码中的log.error并未打印出来~~）
-
