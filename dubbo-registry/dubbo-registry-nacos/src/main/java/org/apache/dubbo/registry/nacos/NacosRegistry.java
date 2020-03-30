@@ -42,6 +42,7 @@ import org.apache.dubbo.common.URL;
 import org.apache.dubbo.common.URLBuilder;
 import org.apache.dubbo.common.logger.Logger;
 import org.apache.dubbo.common.logger.LoggerFactory;
+import org.apache.dubbo.common.utils.CollectionUtils;
 import org.apache.dubbo.common.utils.StringUtils;
 import org.apache.dubbo.common.utils.UrlUtils;
 import org.apache.dubbo.registry.NotifyListener;
@@ -166,14 +167,42 @@ public class NacosRegistry extends FailbackRegistry {
     }
 
     private void doSubscribe(final URL url, final NotifyListener listener, final Set<String> serviceNames) {
-        execute(namingService -> {
+        /*execute(namingService -> {
             List<Instance> instances = new LinkedList();
             for (String serviceName : serviceNames) {
                 instances.addAll(namingService.getAllInstances(serviceName));
                 subscribeEventListener(serviceName, url, listener);
             }
             notifySubscriber(url, listener, instances);
+        });*/
+        execute(namingService -> {
+            for (String serviceName : serviceNames) {
+                List<Instance> instances = namingService.getAllInstances(serviceName);
+
+                //TO FIX bug with https://github.com/apache/dubbo/issues/5885
+                if (CollectionUtils.isEmpty(instances) && isServiceNamesWithCompatibleMode(url)) {
+                    return;
+                }
+
+                notifySubscriber(url, listener, instances);
+                subscribeEventListener(serviceName, url, listener);
+            }
         });
+    }
+
+    /**
+     * Since 2.7.6 the legacy service name will be added to serviceNames
+     * to fix bug with https://github.com/apache/dubbo/issues/5442
+     *
+     * @param url
+     * @return
+     */
+    private boolean isServiceNamesWithCompatibleMode(final URL url) {
+        if (!isAdminProtocol(url) && createServiceName(url).isConcrete()) {
+            return true;
+        } else {
+            return false;
+        }
     }
 
     @Override
@@ -219,7 +248,7 @@ public class NacosRegistry extends FailbackRegistry {
              *   https://github.com/apache/dubbo/issues/5885
              */
             // Add the legacy service name since 2.7.6
-            // serviceNames.add(getLegacySubscribedServiceName(url));
+            serviceNames.add(getLegacySubscribedServiceName(url));
         } else {
             serviceNames = filterServiceNames(serviceName);
         }

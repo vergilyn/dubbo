@@ -16,6 +16,12 @@
  */
 package org.apache.dubbo.rpc.proxy;
 
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
+
+import com.alibaba.dubbo.rpc.service.EchoService;
+
 import org.apache.dubbo.common.utils.ReflectUtils;
 import org.apache.dubbo.rpc.Constants;
 import org.apache.dubbo.rpc.Invoker;
@@ -23,12 +29,6 @@ import org.apache.dubbo.rpc.ProxyFactory;
 import org.apache.dubbo.rpc.RpcException;
 import org.apache.dubbo.rpc.service.Destroyable;
 import org.apache.dubbo.rpc.service.GenericService;
-
-import com.alibaba.dubbo.rpc.service.EchoService;
-
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Set;
 
 import static org.apache.dubbo.common.constants.CommonConstants.COMMA_SPLIT_PATTERN;
 import static org.apache.dubbo.rpc.Constants.INTERFACES;
@@ -59,6 +59,7 @@ public abstract class AbstractProxyFactory implements ProxyFactory {
             }
         }
 
+        // 提供泛化调用支持，参考 pull request #1827
         if (generic) {
             if (!GenericService.class.isAssignableFrom(invoker.getInterface())) {
                 interfaces.add(com.alibaba.dubbo.rpc.service.GenericService.class);
@@ -76,6 +77,7 @@ public abstract class AbstractProxyFactory implements ProxyFactory {
         interfaces.add(invoker.getInterface());
         interfaces.addAll(Arrays.asList(INTERNAL_INTERFACES));
 
+        // 抽象方法，参考实现类：JavassistProxyFactory、JdkProxyFactory
         return getProxy(invoker, interfaces.toArray(new Class<?>[0]));
     }
 

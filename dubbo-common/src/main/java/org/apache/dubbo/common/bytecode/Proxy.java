@@ -16,9 +16,6 @@
  */
 package org.apache.dubbo.common.bytecode;
 
-import org.apache.dubbo.common.utils.ClassUtils;
-import org.apache.dubbo.common.utils.ReflectUtils;
-
 import java.lang.ref.Reference;
 import java.lang.ref.WeakReference;
 import java.lang.reflect.InvocationHandler;
@@ -32,6 +29,9 @@ import java.util.Map;
 import java.util.Set;
 import java.util.WeakHashMap;
 import java.util.concurrent.atomic.AtomicLong;
+
+import org.apache.dubbo.common.utils.ClassUtils;
+import org.apache.dubbo.common.utils.ReflectUtils;
 
 import static org.apache.dubbo.common.constants.CommonConstants.MAX_PROXY_COUNT;
 
@@ -51,6 +51,9 @@ public abstract class Proxy {
     private static final String PACKAGE_NAME = Proxy.class.getPackage().getName();
     private static final Map<ClassLoader, Map<String, Object>> PROXY_CACHE_MAP = new WeakHashMap<ClassLoader, Map<String, Object>>();
 
+    /**
+     * vergilyn-comment, 2020-03-30 >>>> 等待一代标记（保证只有一个线程可以进行后续操作）
+     */
     private static final Object PENDING_GENERATION_MARKER = new Object();
 
     protected Proxy() {
@@ -74,6 +77,7 @@ public abstract class Proxy {
      * @return Proxy instance.
      */
     public static Proxy getProxy(ClassLoader cl, Class<?>... ics) {
+        // 最大代理数限制，静态常量
         if (ics.length > MAX_PROXY_COUNT) {
             throw new IllegalArgumentException("interface limit exceeded");
         }
@@ -81,16 +85,20 @@ public abstract class Proxy {
         StringBuilder sb = new StringBuilder();
         for (int i = 0; i < ics.length; i++) {
             String itf = ics[i].getName();
+
+            // 检测类型是否为接口
             if (!ics[i].isInterface()) {
                 throw new RuntimeException(itf + " is not a interface.");
             }
 
             Class<?> tmp = null;
             try {
+                // 重新加载接口类
                 tmp = Class.forName(itf, false, cl);
             } catch (ClassNotFoundException e) {
             }
 
+            // 检测接口是否相同，这里 tmp 有可能为空
             if (tmp != ics[i]) {
                 throw new IllegalArgumentException(ics[i] + " is not visible from class loader");
             }
@@ -118,12 +126,14 @@ public abstract class Proxy {
                     }
                 }
 
+                // 并发控制，保证只有一个线程可以进行后续操作
                 if (value == PENDING_GENERATION_MARKER) {
                     try {
                         cache.wait();
                     } catch (InterruptedException e) {
                     }
                 } else {
+                    // 放置标志位到缓存中，并跳出 while 循环进行后续操作
                     cache.put(key, PENDING_GENERATION_MARKER);
                     break;
                 }
@@ -132,7 +142,14 @@ public abstract class Proxy {
         }
 
         long id = PROXY_CLASS_COUNTER.getAndIncrement();
+
+        /* 接口包名 */
         String pkg = null;
+
+        /*
+         * ccp 用于为服务接口生成代理类，比如我们有一个 DemoService 接口，这个接口代理类就是由 ccp 生成的。
+         * ccm 则是用于为 org.apache.dubbo.common.bytecode.Proxy 抽象类生成子类，主要是实现 Proxy 类的抽象方法。
+         */
         ClassGenerator ccp = null, ccm = null;
         try {
             ccp = ClassGenerator.newInstance(cl);
@@ -142,10 +159,11 @@ public abstract class Proxy {
 
             for (int i = 0; i < ics.length; i++) {
                 if (!Modifier.isPublic(ics[i].getModifiers())) {
-                    String npkg = ics[i].getPackage().getName();
+                    String npkg = ics[i].getPackage().getName();   // 获取接口包名
                     if (pkg == null) {
                         pkg = npkg;
                     } else {
+                        // 非 public 级别的接口必须在同一个包下，否者抛出异常
                         if (!pkg.equals(npkg)) {
                             throw new IllegalArgumentException("non-public interfaces from different packages");
                         }
@@ -153,8 +171,13 @@ public abstract class Proxy {
                 }
                 ccp.addInterface(ics[i]);
 
+                // 遍历接口方法
                 for (Method method : ics[i].getMethods()) {
+                    // 获取方法描述，可理解为方法签名
                     String desc = ReflectUtils.getDesc(method);
+
+                    // 如果方法描述字符串已在 worked 中，则忽略。考虑这种情况，
+                    // A 接口和 B 接口中包含一个完全相同的方法
                     if (worked.contains(desc) || Modifier.isStatic(method.getModifiers())) {
                         continue;
                     }
@@ -164,19 +187,27 @@ public abstract class Proxy {
                     worked.add(desc);
 
                     int ix = methods.size();
-                    Class<?> rt = method.getReturnType();
-                    Class<?>[] pts = method.getParameterTypes();
+                    Class<?> rt = method.getReturnType();  // 获取方法返回值类型
+                    Class<?>[] pts = method.getParameterTypes();  // 获取参数列表
 
+                    /* ex.
+                     * Object[] args = new Object[N]; args[N] = ($w)$N+1;
+                     * Object ret = handler.invoke(this, methods[ix], args);
+                     * return (java.lang.String) ret;
+                     */
                     StringBuilder code = new StringBuilder("Object[] args = new Object[").append(pts.length).append("];");
                     for (int j = 0; j < pts.length; j++) {
                         code.append(" args[").append(j).append("] = ($w)$").append(j + 1).append(";");
                     }
+                    // important >>>> 生成 InvokerHandler 接口的 invoker 方法调用语句
                     code.append(" Object ret = handler.invoke(this, methods[").append(ix).append("], args);");
                     if (!Void.TYPE.equals(rt)) {
                         code.append(" return ").append(asArgument(rt, "ret")).append(";");
                     }
 
                     methods.add(method);
+
+                    // 添加方法名、访问控制符、参数列表、方法代码等信息到 ClassGenerator 中
                     ccp.addMethod(method.getName(), method.getModifiers(), rt, pts, method.getExceptionTypes(), code.toString());
                 }
             }
@@ -185,22 +216,41 @@ public abstract class Proxy {
                 pkg = PACKAGE_NAME;
             }
 
+            /* vergilyn-comment, 2020-03-30 >>>>
+             *   ProxyInstance/Proxy class 主要区分是 id(AtomicLong)！
+             *   ProxyInstance > org.apache.dubbo.proxy0
+             *   Proxy > org.apache.dubbo.common.bytecode.Proxy0
+             */
+
             // create ProxyInstance class.
-            String pcn = pkg + ".proxy" + id;
+            String pcn = pkg + ".proxy" + id;  // ex. org.apache.dubbo.proxy0
             ccp.setClassName(pcn);
             ccp.addField("public static java.lang.reflect.Method[] methods;");
+
+            // 生成 private java.lang.reflect.InvocationHandler handler;
             ccp.addField("private " + InvocationHandler.class.getName() + " handler;");
+
+            // 为接口代理类添加带有 InvocationHandler 参数的构造方法，比如：
+            // porxy0(java.lang.reflect.InvocationHandler arg0) {
+            //     handler=$1;
+            // }
             ccp.addConstructor(Modifier.PUBLIC, new Class<?>[]{InvocationHandler.class}, new Class<?>[0], "handler=$1;");
             ccp.addDefaultConstructor();
-            Class<?> clazz = ccp.toClass();
+
+            Class<?> clazz = ccp.toClass();  // 生成接口代理类
             clazz.getField("methods").set(null, methods.toArray(new Method[0]));
 
             // create Proxy class.
-            String fcn = Proxy.class.getName() + id;
+            String fcn = Proxy.class.getName() + id;  // ex. org.apache.dubbo.common.bytecode.Proxy0
             ccm = ClassGenerator.newInstance(cl);
             ccm.setClassName(fcn);
             ccm.addDefaultConstructor();
             ccm.setSuperClass(Proxy.class);
+            /* 实现 Proxy 的抽象方法 newInstance(...)，ex:
+             *   public Object newInstance(java.lang.reflect.InvocationHandler h) {
+             *      return new org.apache.dubbo.proxy0($1);
+             *   }
+             */
             ccm.addMethod("public Object newInstance(" + InvocationHandler.class.getName() + " h){ return new " + pcn + "($1); }");
             Class<?> pc = ccm.toClass();
             proxy = (Proxy) pc.newInstance();
@@ -220,6 +270,7 @@ public abstract class Proxy {
                 if (proxy == null) {
                     cache.remove(key);
                 } else {
+                    // 写缓存，其类型是 Reference<T> （不再是 PENDING_GENERATION_MARKER）
                     cache.put(key, new WeakReference<Proxy>(proxy));
                 }
                 cache.notifyAll();
