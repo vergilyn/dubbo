@@ -16,6 +16,14 @@
  */
 package org.apache.dubbo.remoting.transport.netty4;
 
+import java.net.InetSocketAddress;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+
+import io.netty.channel.ChannelDuplexHandler;
+import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.ChannelPromise;
+import io.netty.handler.timeout.IdleStateEvent;
 import org.apache.dubbo.common.URL;
 import org.apache.dubbo.common.logger.Logger;
 import org.apache.dubbo.common.logger.LoggerFactory;
@@ -23,15 +31,6 @@ import org.apache.dubbo.common.utils.NetUtils;
 import org.apache.dubbo.remoting.Channel;
 import org.apache.dubbo.remoting.ChannelHandler;
 import org.apache.dubbo.remoting.transport.netty4.SslHandlerInitializer.HandshakeCompletionEvent;
-
-import io.netty.channel.ChannelDuplexHandler;
-import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.ChannelPromise;
-import io.netty.handler.timeout.IdleStateEvent;
-
-import java.net.InetSocketAddress;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * NettyServerHandler.
@@ -49,6 +48,13 @@ public class NettyServerHandler extends ChannelDuplexHandler {
 
     private final ChannelHandler handler;
 
+    /**
+     * <p>vergilyn-comment, 2020-03-31 >>>> <br/>
+     *   有且仅存在该 constructor
+     * </p>
+     * @param url
+     * @param handler {@linkplain NettyServer#doOpen()} 可知, handler 即{@linkplain NettyServer}
+     */
     public NettyServerHandler(URL url, ChannelHandler handler) {
         if (url == null) {
             throw new IllegalArgumentException("url == null");
@@ -92,6 +98,9 @@ public class NettyServerHandler extends ChannelDuplexHandler {
         }
     }
 
+    /* vergilyn-comment, 2020-03-31 >>>>
+     *   由 constructor 可知，`handler#received(...)` 实际调用的是 `NettyServer#received(...)`
+     */
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
         NettyChannel channel = NettyChannel.getOrAddChannel(ctx.channel(), url, handler);

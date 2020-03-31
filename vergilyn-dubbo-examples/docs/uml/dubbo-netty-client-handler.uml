@@ -1,0 +1,174 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Diagram>
+  <ID>JAVA</ID>
+  <OriginalElement>java.lang.Override</OriginalElement>
+  <nodes>
+    <node x="387.3333333333333" y="249.0">io.netty.channel.ChannelDuplexHandler</node>
+    <node x="70.0" y="332.0">org.apache.dubbo.remoting.transport.netty4.NettyCodecAdapter.InternalEncoder</node>
+    <node x="0.0" y="166.0">io.netty.channel.ChannelOutboundHandlerAdapter</node>
+    <node x="315.2499999999999" y="415.0">io.netty.handler.timeout.IdleStateHandler.AbstractIdleTask</node>
+    <node x="100.99999999999989" y="498.0">io.netty.handler.timeout.IdleStateHandler.AllIdleTimeoutTask</node>
+    <node x="249.33333333333331" y="83.0">io.netty.channel.ChannelOutboundHandler</node>
+    <node x="622.9999999999999" y="498.0">io.netty.handler.timeout.IdleStateHandler.WriterIdleTimeoutTask</node>
+    <node x="611.5" y="166.0">io.netty.channel.ChannelInboundHandlerAdapter</node>
+    <node x="577.25" y="83.0">io.netty.channel.ChannelInboundHandler</node>
+    <node x="1182.056790123457" y="83.0">io.netty.channel.ChannelHandler.Sharable</node>
+    <node x="286.0" y="332.0">io.netty.handler.timeout.IdleStateHandler</node>
+    <node x="346.9999999999999" y="498.0">io.netty.handler.timeout.IdleStateHandler.ReaderIdleTimeoutTask</node>
+    <node x="758.0" y="332.0">org.apache.dubbo.remoting.transport.netty4.NettyCodecAdapter.InternalDecoder</node>
+    <node x="0.0" y="332.0">io.netty.handler.codec.ByteToMessageDecoder.Cumulator</node>
+    <node x="512.0" y="332.0">org.apache.dubbo.remoting.transport.netty4.NettyClientHandler</node>
+    <node x="427.0" y="0.0">io.netty.channel.ChannelHandler</node>
+    <node x="733.0" y="249.0">io.netty.handler.codec.ByteToMessageDecoder</node>
+    <node x="45.0" y="249.0">io.netty.handler.codec.MessageToByteEncoder</node>
+  </nodes>
+  <notes />
+  <edges>
+    <edge source="io.netty.channel.ChannelOutboundHandler" target="io.netty.channel.ChannelHandler">
+      <point x="0.0" y="-16.5" />
+      <point x="382.3333333333333" y="63.0" />
+      <point x="496.75" y="63.0" />
+      <point x="-23.25" y="16.5" />
+    </edge>
+    <edge source="org.apache.dubbo.remoting.transport.netty4.NettyCodecAdapter.InternalEncoder" target="io.netty.handler.codec.MessageToByteEncoder">
+      <point x="0.0" y="-16.5" />
+      <point x="0.0" y="16.5" />
+    </edge>
+    <edge source="io.netty.handler.timeout.IdleStateHandler.ReaderIdleTimeoutTask" target="io.netty.handler.timeout.IdleStateHandler.AbstractIdleTask">
+      <point x="-64.0" y="-16.5" />
+      <point x="410.9999999999999" y="478.0" />
+      <point x="418.2499999999999" y="478.0" />
+      <point x="0.0" y="16.5" />
+    </edge>
+    <edge source="io.netty.channel.ChannelOutboundHandlerAdapter" target="io.netty.channel.ChannelOutboundHandler">
+      <point x="84.0" y="-16.5" />
+      <point x="252.0" y="141.0" />
+      <point x="315.8333333333333" y="141.0" />
+      <point x="-66.5" y="16.5" />
+    </edge>
+    <edge source="io.netty.handler.timeout.IdleStateHandler.WriterIdleTimeoutTask" target="io.netty.handler.timeout.IdleStateHandler">
+      <point x="64.00000000000011" y="-16.5" />
+      <point x="815.0" y="390.0" />
+      <point x="552.2499999999999" y="390.0" />
+      <point x="77.25" y="16.5" />
+    </edge>
+    <edge source="io.netty.channel.ChannelInboundHandler" target="io.netty.channel.ChannelHandler">
+      <point x="0.0" y="-16.5" />
+      <point x="705.25" y="63.0" />
+      <point x="543.25" y="63.0" />
+      <point x="23.25" y="16.5" />
+    </edge>
+    <edge source="io.netty.handler.codec.ByteToMessageDecoder.Cumulator" target="io.netty.handler.codec.ByteToMessageDecoder">
+      <point x="0.0" y="-16.5" />
+      <point x="68.0" y="307.0" />
+      <point x="99.49999999999977" y="307.0" />
+      <point x="-61.5" y="16.5" />
+    </edge>
+    <edge source="io.netty.handler.timeout.IdleStateHandler.WriterIdleTimeoutTask" target="io.netty.handler.timeout.IdleStateHandler.AbstractIdleTask">
+      <point x="-63.999999999999886" y="-16.5" />
+      <point x="687.0" y="468.0" />
+      <point x="486.9166666666665" y="468.0" />
+      <point x="68.66666666666663" y="16.5" />
+    </edge>
+    <edge source="io.netty.channel.ChannelInboundHandlerAdapter" target="io.netty.channel.ChannelInboundHandler">
+      <point x="-81.5" y="-16.5" />
+      <point x="693.0" y="141.0" />
+      <point x="705.25" y="141.0" />
+      <point x="0.0" y="16.5" />
+    </edge>
+    <edge source="io.netty.handler.codec.MessageToByteEncoder" target="io.netty.channel.ChannelOutboundHandlerAdapter">
+      <point x="0.0" y="-16.5" />
+      <point x="0.0" y="16.5" />
+    </edge>
+    <edge source="io.netty.channel.ChannelDuplexHandler" target="io.netty.channel.ChannelInboundHandlerAdapter">
+      <point x="61.5" y="-16.5" />
+      <point x="571.8333333333333" y="224.0" />
+      <point x="693.0" y="224.0" />
+      <point x="-81.5" y="16.5" />
+    </edge>
+    <edge source="io.netty.handler.timeout.IdleStateHandler.ReaderIdleTimeoutTask" target="io.netty.handler.timeout.IdleStateHandler">
+      <point x="64.0" y="-16.5" />
+      <point x="538.9999999999999" y="478.0" />
+      <point x="531.7499999999999" y="478.0" />
+      <point x="531.7499999999999" y="390.0" />
+      <point x="500.7499999999999" y="390.0" />
+      <point x="25.75" y="16.5" />
+    </edge>
+    <edge source="io.netty.handler.timeout.IdleStateHandler.AllIdleTimeoutTask" target="io.netty.handler.timeout.IdleStateHandler.AbstractIdleTask">
+      <point x="56.5" y="-16.5" />
+      <point x="270.4999999999999" y="478.0" />
+      <point x="349.58333333333326" y="478.0" />
+      <point x="-68.66666666666663" y="16.5" />
+    </edge>
+    <edge source="org.apache.dubbo.remoting.transport.netty4.NettyCodecAdapter.InternalDecoder" target="io.netty.handler.codec.ByteToMessageDecoder">
+      <point x="0.0" y="-16.5" />
+      <point x="0.0" y="16.5" />
+    </edge>
+    <edge source="io.netty.channel.ChannelOutboundHandlerAdapter" target="io.netty.channel.ChannelHandler">
+      <point x="-84.0" y="-16.5" />
+      <point x="84.0" y="53.0" />
+      <point x="450.25" y="53.0" />
+      <point x="-69.75" y="16.5" />
+    </edge>
+    <edge source="io.netty.handler.timeout.IdleStateHandler.AbstractIdleTask" target="io.netty.handler.timeout.IdleStateHandler">
+      <point x="0.0" y="-16.5" />
+      <point x="418.2499999999999" y="390.0" />
+      <point x="449.2499999999999" y="390.0" />
+      <point x="-25.75" y="16.5" />
+    </edge>
+    <edge source="io.netty.handler.timeout.IdleStateHandler.AllIdleTimeoutTask" target="io.netty.handler.timeout.IdleStateHandler">
+      <point x="-56.5" y="-16.5" />
+      <point x="157.4999999999999" y="390.0" />
+      <point x="397.7499999999999" y="390.0" />
+      <point x="-77.25" y="16.5" />
+    </edge>
+    <edge source="io.netty.handler.codec.ByteToMessageDecoder" target="io.netty.channel.ChannelInboundHandlerAdapter">
+      <point x="0.0" y="-16.5" />
+      <point x="81.5" y="16.5" />
+    </edge>
+    <edge source="org.apache.dubbo.remoting.transport.netty4.NettyClientHandler" target="io.netty.channel.ChannelDuplexHandler">
+      <point x="0.0" y="-16.5" />
+      <point x="625.0" y="307.0" />
+      <point x="571.8333333333333" y="307.0" />
+      <point x="61.5" y="16.5" />
+    </edge>
+    <edge source="io.netty.channel.ChannelInboundHandlerAdapter" target="io.netty.channel.ChannelHandler">
+      <point x="81.5" y="-16.5" />
+      <point x="856.0" y="141.0" />
+      <point x="843.75" y="141.0" />
+      <point x="843.75" y="53.0" />
+      <point x="589.75" y="53.0" />
+      <point x="69.75" y="16.5" />
+    </edge>
+    <edge source="org.apache.dubbo.remoting.transport.netty4.NettyClientHandler" target="io.netty.channel.ChannelHandler.Sharable">
+      <point x="56.5" y="-16.5" />
+      <point x="0.0" y="16.5" />
+    </edge>
+    <edge source="io.netty.channel.ChannelHandler.Sharable" target="io.netty.channel.ChannelHandler">
+      <point x="0.0" y="-16.5" />
+      <point x="1245.056790123457" y="53.0" />
+      <point x="738.8999999999999" y="53.0" />
+      <point x="74.39999999999998" y="16.5" />
+    </edge>
+    <edge source="io.netty.channel.ChannelDuplexHandler" target="io.netty.channel.ChannelOutboundHandler">
+      <point x="-61.5" y="-16.5" />
+      <point x="66.5" y="16.5" />
+    </edge>
+    <edge source="io.netty.handler.timeout.IdleStateHandler" target="io.netty.channel.ChannelDuplexHandler">
+      <point x="0.0" y="-16.5" />
+      <point x="389.0" y="307.0" />
+      <point x="448.8333333333333" y="307.0" />
+      <point x="-61.5" y="16.5" />
+    </edge>
+  </edges>
+  <settings layout="Hierarchic Group" zoom="0.7695099818511797" x="654.5" y="265.5" />
+  <SelectedNodes>
+    <node>org.apache.dubbo.remoting.transport.netty4.NettyClientHandler</node>
+  </SelectedNodes>
+  <Categories>
+    <Category>Inner Classes</Category>
+  </Categories>
+  <SCOPE>All</SCOPE>
+  <VISIBILITY>private</VISIBILITY>
+</Diagram>
+

@@ -87,6 +87,10 @@ public class HeartbeatHandler extends AbstractChannelHandlerDelegate {
             }
             return;
         }
+
+        /* vergilyn-comment, 2020-03-31 >>>>
+         *   ex. NettyServer 构造函数传入的 handler
+         */
         handler.received(channel, message);
     }
 

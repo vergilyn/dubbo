@@ -28,12 +28,18 @@ import org.apache.dubbo.remoting.exchange.support.MultiMessage;
 public class MultiMessageHandler extends AbstractChannelHandlerDelegate {
 
     public MultiMessageHandler(ChannelHandler handler) {
+        // vergilyn-comment, 2020-03-31 >>>> {@linkplain org.apache.dubbo.remoting.exchange.support.header.HeartbeatHandler}
         super(handler);
     }
 
     @SuppressWarnings("unchecked")
     @Override
     public void received(Channel channel, Object message) throws RemotingException {
+        /*
+         * vergilyn-comment, 2020-03-31 >>>>
+         *   {@linkplain org.apache.dubbo.remoting.exchange.support.header.HeartbeatHandler}
+         */
+
         if (message instanceof MultiMessage) {
             MultiMessage list = (MultiMessage) message;
             for (Object obj : list) {

@@ -70,9 +70,17 @@ public class NettyServer extends AbstractServer implements RemotingServer {
     private EventLoopGroup bossGroup;
     private EventLoopGroup workerGroup;
 
+    /**
+     * <code>handler</code> 是处理 client 的核心。<br/>
+     * 在NettyServer对 handler 进行了包装：MultiMessageHandler->HeartbeatHandler->handler
+     * @param url
+     * @param handler
+     * @throws RemotingException
+     */
     public NettyServer(URL url, ChannelHandler handler) throws RemotingException {
         // you can customize name and type of client thread pool by THREAD_NAME_KEY and THREADPOOL_KEY in CommonConstants.
-        // the handler will be wrapped: MultiMessageHandler->HeartbeatHandler->handler
+        // vergilyn-comment, 2020-03-31 >>>> 如果要理解client请求的处理过程，一定要理解 server 对于 ChannelHandler 的包装。
+        // the handler will be wrapped(包装): MultiMessageHandler->HeartbeatHandler->handler
         super(ExecutorUtil.setThreadName(url, SERVER_THREAD_POOL_NAME), ChannelHandlers.wrap(handler, url));
     }
 
@@ -110,9 +118,14 @@ public class NettyServer extends AbstractServer implements RemotingServer {
                                     SslHandlerInitializer.sslServerHandler(getUrl(), nettyServerHandler));
                         }
                         ch.pipeline()
+                                // inbound
                                 .addLast("decoder", adapter.getDecoder())
+                                // outbound
                                 .addLast("encoder", adapter.getEncoder())
-                                .addLast("server-idle-handler", new IdleStateHandler(0, 0, idleTimeout, MILLISECONDS))
+                                // inbound & outbound
+                                .addLast("server-idle-handler",
+                                        new IdleStateHandler(0, 0, idleTimeout, MILLISECONDS))  // inbound & outbound
+                                // inbound & outbound
                                 .addLast("handler", nettyServerHandler);
                     }
                 });

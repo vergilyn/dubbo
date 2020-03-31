@@ -16,17 +16,7 @@
  */
 package org.apache.dubbo.remoting.transport.netty4;
 
-import org.apache.dubbo.common.URL;
-import org.apache.dubbo.common.Version;
-import org.apache.dubbo.common.logger.Logger;
-import org.apache.dubbo.common.logger.LoggerFactory;
-import org.apache.dubbo.common.utils.ConfigUtils;
-import org.apache.dubbo.common.utils.NetUtils;
-import org.apache.dubbo.remoting.ChannelHandler;
-import org.apache.dubbo.remoting.Constants;
-import org.apache.dubbo.remoting.RemotingException;
-import org.apache.dubbo.remoting.transport.AbstractClient;
-import org.apache.dubbo.remoting.utils.UrlUtils;
+import java.net.InetSocketAddress;
 
 import io.netty.bootstrap.Bootstrap;
 import io.netty.buffer.PooledByteBufAllocator;
@@ -38,8 +28,17 @@ import io.netty.channel.EventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.handler.proxy.Socks5ProxyHandler;
 import io.netty.handler.timeout.IdleStateHandler;
-
-import java.net.InetSocketAddress;
+import org.apache.dubbo.common.URL;
+import org.apache.dubbo.common.Version;
+import org.apache.dubbo.common.logger.Logger;
+import org.apache.dubbo.common.logger.LoggerFactory;
+import org.apache.dubbo.common.utils.ConfigUtils;
+import org.apache.dubbo.common.utils.NetUtils;
+import org.apache.dubbo.remoting.ChannelHandler;
+import org.apache.dubbo.remoting.Constants;
+import org.apache.dubbo.remoting.RemotingException;
+import org.apache.dubbo.remoting.transport.AbstractClient;
+import org.apache.dubbo.remoting.utils.UrlUtils;
 
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static org.apache.dubbo.common.constants.CommonConstants.SSL_ENABLED_KEY;
@@ -111,9 +110,13 @@ public class NettyClient extends AbstractClient {
 
                 NettyCodecAdapter adapter = new NettyCodecAdapter(getCodec(), getUrl(), NettyClient.this);
                 ch.pipeline()//.addLast("logging",new LoggingHandler(LogLevel.INFO))//for debug
+                        // inbound
                         .addLast("decoder", adapter.getDecoder())
+                        // outbound
                         .addLast("encoder", adapter.getEncoder())
+                        // inbound & outbound
                         .addLast("client-idle-handler", new IdleStateHandler(heartbeatInterval, 0, 0, MILLISECONDS))
+                        // inbound & outbound
                         .addLast("handler", nettyClientHandler);
 
                 String socksProxyHost = ConfigUtils.getProperty(SOCKS_PROXY_HOST);

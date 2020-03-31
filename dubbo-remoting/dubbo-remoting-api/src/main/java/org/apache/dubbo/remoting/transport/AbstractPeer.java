@@ -144,6 +144,9 @@ public abstract class AbstractPeer implements Endpoint, ChannelHandler {
         if (closed) {
             return;
         }
+        /* vergilyn-comment, 2020-03-31 >>>>
+         *   {@linkplain MultiMessageHandler}
+         */
         handler.received(ch, msg);
     }
 
