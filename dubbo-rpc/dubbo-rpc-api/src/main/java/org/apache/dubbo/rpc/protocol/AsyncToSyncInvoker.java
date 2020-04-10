@@ -16,6 +16,9 @@
  */
 package org.apache.dubbo.rpc.protocol;
 
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+
 import org.apache.dubbo.common.URL;
 import org.apache.dubbo.remoting.RemotingException;
 import org.apache.dubbo.remoting.TimeoutException;
@@ -25,9 +28,7 @@ import org.apache.dubbo.rpc.Invoker;
 import org.apache.dubbo.rpc.Result;
 import org.apache.dubbo.rpc.RpcException;
 import org.apache.dubbo.rpc.RpcInvocation;
-
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
+import org.apache.dubbo.rpc.proxy.InvokerInvocationHandler;
 
 /**
  * This class will work as a wrapper wrapping outside of each protocol invoker.
@@ -36,6 +37,14 @@ import java.util.concurrent.TimeUnit;
  */
 public class AsyncToSyncInvoker<T> implements Invoker<T> {
 
+    /**
+     * vergilyn-comment, 2020-04-10 >>>> {@linkplain org.apache.dubbo.rpc.protocol.dubbo.DubboInvoker}
+     * <pre>ex.
+     *   -> {@linkplain AbstractProtocol#refer(java.lang.Class, org.apache.dubbo.common.URL)}
+     *   -> {@linkplain org.apache.dubbo.rpc.protocol.dubbo.DubboProtocol}
+     *   -> {@linkplain org.apache.dubbo.remoting.transport.netty4.NettyClient}
+     * </pre>
+     */
     private Invoker<T> invoker;
 
     public AsyncToSyncInvoker(Invoker<T> invoker) {
@@ -47,6 +56,12 @@ public class AsyncToSyncInvoker<T> implements Invoker<T> {
         return invoker.getInterface();
     }
 
+    /**
+     *
+     * @param invocation {@linkplain RpcInvocation}, see: {@linkplain InvokerInvocationHandler#invoke(java.lang.Object, java.lang.reflect.Method, java.lang.Object[])}
+     * @return
+     * @throws RpcException
+     */
     @Override
     public Result invoke(Invocation invocation) throws RpcException {
         Result asyncResult = invoker.invoke(invocation);

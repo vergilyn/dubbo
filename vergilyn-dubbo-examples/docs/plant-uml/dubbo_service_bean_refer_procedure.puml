@@ -15,7 +15,7 @@ end note
 
 --> "ReferenceAnnotationBeanPostProcessor.class"
 note right
-（主要需要裂解 spring bean lifecycle）
+（需要理解 spring bean lifecycle）
 通过上一步，已经 registry `ReferenceAnnotationBeanPostProcessor`，看一下该类的继承/实现关系
 ```
 class ReferenceAnnotationBeanPostProcessor (alibaba-spring-context-support)
@@ -39,5 +39,52 @@ end note
 --> "ReferenceConfig#get(...)"
 
 -->[ ReferenceConfig#init(...) ] "ReferenceConfig#createProxy(...)"
+note right
+`invoker = REF_PROTOCOL.refer(interfaceClass, url);`
+例如 `DubboProtocol#refer(class, url)`
+
+<color:red>**核心：**</color>
+1. `DubboProtocol#initClient()`，根据URL创建NettyClient Bootstrap
+<color:red>**2. `handler = DubboProtocol.requestHandler`（匿名类）**</color>，Netty ChannelHandler的核心处理类
+3. <color:red>**create invoker**</color>
+endnote
+
+-->[ **create netty-client**] "NettyTransporter#connect()"
+
+--> "new NettyClient(...)"
+note right
+**特别：**
+dubbo将`handler`进行了多次包装(wrapped): MultiMessageHandler->HeartbeatHandler->handler
+
+1. 创建了netty-client Bootstrap，`NettyClient#doOpen()`
+2. 与netty-server 建立了连接，`NettyClient#doConnect()` （即 netty的 bootstrap#connect()）
+3. 此处netty-client 的handler实际就是前面的`DubboProtocol.requestHandler`。
+
+endnote
+
+-->[ <color:red>**ReferenceConfig 创建 invoker 完成！**</color>] "create proxy javassist/jdk/stub"
+
+--> "JavassistProxyFactory#getProxy()"
+note right
+1. 创建代理类，详见 `Proxy#getProxy()`
+2. 代理类核心还是之前创建的 <color:red>**invoker**</color>
+endnote
+
+--> "**create service-proxy complete**"
+note right
+至此，`@Reference` 需要注入依赖的 service-proxy已经完成。
+endnote
+
+--> "service-proxy method invoke"
+
+-->[ ex. echoService.sayHello()] "InvokerInvocationHandler#invoke()"
+
+--> "MockClusterInvoker#invoke()"
+
+--> "AbstractClusterInvoker#invoke()"
+
+
+
+
 
 @enduml

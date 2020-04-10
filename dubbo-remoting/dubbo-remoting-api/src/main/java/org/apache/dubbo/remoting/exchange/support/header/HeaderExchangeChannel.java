@@ -16,6 +16,10 @@
  */
 package org.apache.dubbo.remoting.exchange.support.header;
 
+import java.net.InetSocketAddress;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
+
 import org.apache.dubbo.common.URL;
 import org.apache.dubbo.common.Version;
 import org.apache.dubbo.common.logger.Logger;
@@ -29,10 +33,6 @@ import org.apache.dubbo.remoting.exchange.Request;
 import org.apache.dubbo.remoting.exchange.Response;
 import org.apache.dubbo.remoting.exchange.support.DefaultFuture;
 
-import java.net.InetSocketAddress;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutorService;
-
 import static org.apache.dubbo.common.constants.CommonConstants.DEFAULT_TIMEOUT;
 import static org.apache.dubbo.common.constants.CommonConstants.TIMEOUT_KEY;
 
@@ -45,6 +45,12 @@ final class HeaderExchangeChannel implements ExchangeChannel {
 
     private static final String CHANNEL_KEY = HeaderExchangeChannel.class.getName() + ".CHANNEL";
 
+    /** vergilyn-comment, 2020-04-10 >>>> {@linkplain org.apache.dubbo.remoting.transport.netty4.NettyClient}
+     * <pre>ex.
+     *   {@linkplain HeaderExchangeClient#HeaderExchangeClient(org.apache.dubbo.remoting.Client, boolean)}
+     *   -> {@linkplain org.apache.dubbo.remoting.transport.netty4.NettyClient}
+     * </pre>
+     */
     private final Channel channel;
 
     private volatile boolean closed = false;
@@ -92,6 +98,10 @@ final class HeaderExchangeChannel implements ExchangeChannel {
         if (closed) {
             throw new RemotingException(this.getLocalAddress(), null, "Failed to send message " + message + ", cause: The channel " + this + " is closed!");
         }
+
+        /** vergilyn-comment, 2020-04-10 >>>>
+         * `channel.send(...)` -> {@linkplain org.apache.dubbo.remoting.transport.netty4.NettyClient#send(java.lang.Object, boolean)}
+         */
         if (message instanceof Request
                 || message instanceof Response
                 || message instanceof String) {

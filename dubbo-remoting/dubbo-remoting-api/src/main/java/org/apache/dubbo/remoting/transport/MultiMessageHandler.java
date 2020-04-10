@@ -35,9 +35,8 @@ public class MultiMessageHandler extends AbstractChannelHandlerDelegate {
     @SuppressWarnings("unchecked")
     @Override
     public void received(Channel channel, Object message) throws RemotingException {
-        /*
-         * vergilyn-comment, 2020-03-31 >>>>
-         *   {@linkplain org.apache.dubbo.remoting.exchange.support.header.HeartbeatHandler}
+        /** vergilyn-comment, 2020-03-31 >>>>
+         *   {@linkplain org.apache.dubbo.remoting.exchange.support.header.HeartbeatHandler#received(Channel, Object)}
          */
 
         if (message instanceof MultiMessage) {

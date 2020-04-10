@@ -16,6 +16,9 @@
  */
 package org.apache.dubbo.rpc.proxy;
 
+import java.lang.reflect.InvocationHandler;
+import java.lang.reflect.Method;
+
 import org.apache.dubbo.common.logger.Logger;
 import org.apache.dubbo.common.logger.LoggerFactory;
 import org.apache.dubbo.rpc.Constants;
@@ -23,15 +26,23 @@ import org.apache.dubbo.rpc.Invoker;
 import org.apache.dubbo.rpc.RpcInvocation;
 import org.apache.dubbo.rpc.model.ApplicationModel;
 import org.apache.dubbo.rpc.model.ConsumerModel;
-
-import java.lang.reflect.InvocationHandler;
-import java.lang.reflect.Method;
+import org.apache.dubbo.rpc.protocol.AbstractProtocol;
+import org.apache.dubbo.rpc.protocol.AsyncToSyncInvoker;
 
 /**
  * InvokerHandler
  */
 public class InvokerInvocationHandler implements InvocationHandler {
     private static final Logger logger = LoggerFactory.getLogger(InvokerInvocationHandler.class);
+    /**
+     * vergilyn-comment, 2020-04-10 >>>> {@linkplain AsyncToSyncInvoker}
+     * <pre> ex.
+     *     {@linkplain org.apache.dubbo.config.ReferenceConfig#createProxy(java.util.Map)}
+     *     -> {@linkplain AbstractProtocol#refer(java.lang.Class, org.apache.dubbo.common.URL)}
+     *     -> {@linkplain org.apache.dubbo.rpc.protocol.dubbo.DubboProtocol}
+     *     -> {@linkplain org.apache.dubbo.remoting.transport.netty4.NettyClient}
+     * </pre>
+     */
     private final Invoker<?> invoker;
     private ConsumerModel consumerModel;
 
@@ -50,6 +61,10 @@ public class InvokerInvocationHandler implements InvocationHandler {
         }
         String methodName = method.getName();
         Class<?>[] parameterTypes = method.getParameterTypes();
+
+        /* vergilyn-comment, 2020-04-10 >>>>
+         *   特殊的几个方法，直接调用本地实现
+         */
         if (parameterTypes.length == 0) {
             if ("toString".equals(methodName)) {
                 return invoker.toString();
@@ -71,6 +86,13 @@ public class InvokerInvocationHandler implements InvocationHandler {
             rpcInvocation.put(Constants.METHOD_MODEL, consumerModel.getMethodModel(method));
         }
 
+        /** vergilyn-comment, 2020-04-10 >>>>
+         * ex.
+         *   -> {@link AsyncToSyncInvoker#invoke(org.apache.dubbo.rpc.Invocation)}
+         *   -> {@link org.apache.dubbo.rpc.protocol.dubbo.DubboInvoker#invoke(org.apache.dubbo.rpc.Invocation)}
+         *   -> {@link org.apache.dubbo.rpc.protocol.dubbo.DubboInvoker#doInvoke(org.apache.dubbo.rpc.Invocation)}
+         *   -> {@linkplain org.apache.dubbo.remoting.transport.netty4.NettyChannel#send(java.lang.Object, boolean)}
+         */
         return invoker.invoke(rpcInvocation).recreate();
     }
 }

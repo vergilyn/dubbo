@@ -57,6 +57,12 @@ import java.lang.annotation.Target;
 public @interface SPI {
 
     /**
+     * 指定默认的加载类
+     * <pre>
+     * {@linkplain ExtensionLoader#loadExtensionClasses()}
+     *   --> {@linkplain ExtensionLoader#cacheDefaultExtensionName()}
+     *     --> {@linkplain ExtensionLoader#getDefaultExtension()}
+     * </pre>
      * default extension name
      */
     String value() default "";

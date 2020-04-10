@@ -34,6 +34,12 @@ public class HeaderExchanger implements Exchanger {
 
     public static final String NAME = "header";
 
+    /** vergilyn-comment, 2020-04-09 >>>>
+     * handler 可能是:
+     * <ol>
+     *   <li> {@linkplain org.apache.dubbo.rpc.protocol.dubbo.DubboProtocol#requestHandler}
+     * </ol>
+     */
     @Override
     public ExchangeClient connect(URL url, ExchangeHandler handler) throws RemotingException {
         // 这里包含了多个调用，分别如下：

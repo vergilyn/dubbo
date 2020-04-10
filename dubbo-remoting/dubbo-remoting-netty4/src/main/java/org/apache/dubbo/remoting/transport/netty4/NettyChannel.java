@@ -16,6 +16,14 @@
  */
 package org.apache.dubbo.remoting.transport.netty4;
 
+import java.net.InetSocketAddress;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.atomic.AtomicBoolean;
+
+import io.netty.channel.Channel;
+import io.netty.channel.ChannelFuture;
 import org.apache.dubbo.common.URL;
 import org.apache.dubbo.common.logger.Logger;
 import org.apache.dubbo.common.logger.LoggerFactory;
@@ -23,15 +31,6 @@ import org.apache.dubbo.remoting.ChannelHandler;
 import org.apache.dubbo.remoting.RemotingException;
 import org.apache.dubbo.remoting.transport.AbstractChannel;
 import org.apache.dubbo.remoting.utils.PayloadDropper;
-
-import io.netty.channel.Channel;
-import io.netty.channel.ChannelFuture;
-
-import java.net.InetSocketAddress;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 import static org.apache.dubbo.common.constants.CommonConstants.DEFAULT_TIMEOUT;
 import static org.apache.dubbo.common.constants.CommonConstants.TIMEOUT_KEY;
@@ -48,6 +47,7 @@ final class NettyChannel extends AbstractChannel {
     private static final ConcurrentMap<Channel, NettyChannel> CHANNEL_MAP = new ConcurrentHashMap<Channel, NettyChannel>();
     /**
      * netty channel
+     * @see NettyClient#channel NettyClient `bootstrap.connect(...).channel();`
      */
     private final Channel channel;
 
@@ -75,9 +75,9 @@ final class NettyChannel extends AbstractChannel {
      * Get dubbo channel by netty channel through channel cache.
      * Put netty channel into it if dubbo channel don't exist in the cache.
      *
-     * @param ch      netty channel
+     * @param ch      netty channel, see: {@linkplain NettyClient#channel}
      * @param url
-     * @param handler dubbo handler that contain netty's handler
+     * @param handler dubbo handler that contain netty's handler, ex. {@linkplain NettyClient#getChannel() NettyClient}
      * @return
      */
     static NettyChannel getOrAddChannel(Channel ch, URL url, ChannelHandler handler) {
@@ -159,6 +159,7 @@ final class NettyChannel extends AbstractChannel {
         boolean success = true;
         int timeout = 0;
         try {
+            // NettyClient -> NettyBootstrap
             ChannelFuture future = channel.writeAndFlush(message);
             if (sent) {
                 // wait timeout ms

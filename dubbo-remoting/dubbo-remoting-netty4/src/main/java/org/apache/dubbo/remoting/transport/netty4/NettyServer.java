@@ -124,7 +124,7 @@ public class NettyServer extends AbstractServer implements RemotingServer {
                                 .addLast("encoder", adapter.getEncoder())
                                 // inbound & outbound
                                 .addLast("server-idle-handler",
-                                        new IdleStateHandler(0, 0, idleTimeout, MILLISECONDS))  // inbound & outbound
+                                        new IdleStateHandler(0, 0, idleTimeout, MILLISECONDS))
                                 // inbound & outbound
                                 .addLast("handler", nettyServerHandler);
                     }

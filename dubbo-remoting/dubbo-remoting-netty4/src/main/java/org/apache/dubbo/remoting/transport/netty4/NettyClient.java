@@ -68,6 +68,9 @@ public class NettyClient extends AbstractClient {
      * current channel. Each successful invocation of {@link NettyClient#doConnect()} will
      * replace this with new channel and close old channel.
      * <b>volatile, please copy reference to use.</b>
+     *
+     * <br/>
+     * vergilyn-comment, 2020-04-10 >>>> `channel = bootstrap.connect(...).channel();`
      */
     private volatile Channel channel;
 

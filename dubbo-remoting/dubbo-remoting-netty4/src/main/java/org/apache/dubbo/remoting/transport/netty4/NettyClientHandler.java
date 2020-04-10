@@ -25,6 +25,7 @@ import org.apache.dubbo.common.Version;
 import org.apache.dubbo.common.logger.Logger;
 import org.apache.dubbo.common.logger.LoggerFactory;
 import org.apache.dubbo.common.utils.StringUtils;
+import org.apache.dubbo.remoting.Channel;
 import org.apache.dubbo.remoting.ChannelHandler;
 import org.apache.dubbo.remoting.exchange.Request;
 import org.apache.dubbo.remoting.exchange.Response;
@@ -40,6 +41,9 @@ public class NettyClientHandler extends ChannelDuplexHandler {
 
     private final URL url;
 
+    /**
+     * @see NettyClient
+     */
     private final ChannelHandler handler;
 
     public NettyClientHandler(URL url, ChannelHandler handler) {
@@ -79,12 +83,25 @@ public class NettyClientHandler extends ChannelDuplexHandler {
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
         NettyChannel channel = NettyChannel.getOrAddChannel(ctx.channel(), url, handler);
+
+        /** vergilyn-comment, 2020-04-10 >>>>
+         * ex. {@link NettyClient#received(Channel, Object)}
+         */
         handler.received(channel, msg);
     }
 
     @Override
     public void write(ChannelHandlerContext ctx, Object msg, ChannelPromise promise) throws Exception {
-        super.write(ctx, msg, promise);  // 传递给下一个 outbound
+
+        /** vergilyn-comment, 2020-04-09 >>>>
+         *   传递给下一个 outbound，即发送msg给netty-server
+         *
+         * 后续 dubbo NettyClientHandler 调用的 `handler.sent()` 貌似只做一个标记。
+         * 调用栈：MultiMessageHandler->HeartbeatHandler->HeaderExchangeHandler->handler
+         * 最终handler -> {@link org.apache.dubbo.rpc.protocol.dubbo.DubboProtocol#requestHandler}
+         */
+        super.write(ctx, msg, promise);
+
         final NettyChannel channel = NettyChannel.getOrAddChannel(ctx.channel(), url, handler);
         final boolean isRequest = msg instanceof Request;
 

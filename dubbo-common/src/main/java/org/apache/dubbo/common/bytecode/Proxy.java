@@ -93,7 +93,7 @@ public abstract class Proxy {
 
             Class<?> tmp = null;
             try {
-                // 重新加载接口类
+                // 加载接口类
                 tmp = Class.forName(itf, false, cl);
             } catch (ClassNotFoundException e) {
             }
@@ -147,8 +147,12 @@ public abstract class Proxy {
         String pkg = null;
 
         /*
-         * ccp 用于为服务接口生成代理类，比如我们有一个 DemoService 接口，这个接口代理类就是由 ccp 生成的。
-         * ccm 则是用于为 org.apache.dubbo.common.bytecode.Proxy 抽象类生成子类，主要是实现 Proxy 类的抽象方法。
+         * ccp
+         *   用于为服务接口生成代理类，比如我们有一个 DemoService 接口，这个接口代理类就是由 ccp 生成的。
+         *
+         * ccm
+         *   则是用于为 org.apache.dubbo.common.bytecode.Proxy 抽象类生成子类，主要是实现 Proxy 类的抽象方法。
+         *   主要其实就是提供 newInstance() 方法，实例化 ccp 生成代理类
          */
         ClassGenerator ccp = null, ccm = null;
         try {
@@ -157,9 +161,15 @@ public abstract class Proxy {
             Set<String> worked = new HashSet<>();
             List<Method> methods = new ArrayList<>();
 
+            /* ex.
+             *   [org.apache.dubbo.rpc.service.Destroyable,
+             *    com.alibaba.dubbo.rpc.service.EchoService,
+             *    com.vergilyn.examples.api.ProviderFirstApi]
+             */
             for (int i = 0; i < ics.length; i++) {
                 if (!Modifier.isPublic(ics[i].getModifiers())) {
-                    String npkg = ics[i].getPackage().getName();   // 获取接口包名
+                    // 获取接口包名
+                    String npkg = ics[i].getPackage().getName();
                     if (pkg == null) {
                         pkg = npkg;
                     } else {
@@ -190,16 +200,10 @@ public abstract class Proxy {
                     Class<?> rt = method.getReturnType();  // 获取方法返回值类型
                     Class<?>[] pts = method.getParameterTypes();  // 获取参数列表
 
-                    /* ex.
-                     * Object[] args = new Object[N]; args[N] = ($w)$N+1;
-                     * Object ret = handler.invoke(this, methods[ix], args);
-                     * return (java.lang.String) ret;
-                     */
                     StringBuilder code = new StringBuilder("Object[] args = new Object[").append(pts.length).append("];");
                     for (int j = 0; j < pts.length; j++) {
                         code.append(" args[").append(j).append("] = ($w)$").append(j + 1).append(";");
                     }
-                    // important >>>> 生成 InvokerHandler 接口的 invoker 方法调用语句
                     code.append(" Object ret = handler.invoke(this, methods[").append(ix).append("], args);");
                     if (!Void.TYPE.equals(rt)) {
                         code.append(" return ").append(asArgument(rt, "ret")).append(";");
@@ -207,7 +211,15 @@ public abstract class Proxy {
 
                     methods.add(method);
 
-                    // 添加方法名、访问控制符、参数列表、方法代码等信息到 ClassGenerator 中
+                    /* 添加方法名、访问控制符、参数列表、方法代码等信息到 ClassGenerator 中
+                     * ex.
+                     *   public java.lang.String sayHello(java.lang.String arg0){
+                     *       Object[] args = new Object[1];
+                     *       args[0] = ($w)$1;
+                     *       Object ret = handler.invoke(this, methods[0], args);
+                     *       return (java.lang.String)ret;
+                     *   }
+                     */
                     ccp.addMethod(method.getName(), method.getModifiers(), rt, pts, method.getExceptionTypes(), code.toString());
                 }
             }
@@ -218,26 +230,29 @@ public abstract class Proxy {
 
             /* vergilyn-comment, 2020-03-30 >>>>
              *   ProxyInstance/Proxy class 主要区分是 id(AtomicLong)！
-             *   ProxyInstance > org.apache.dubbo.proxy0
+             *   ProxyInstance > org.apache.dubbo.common.bytecode.proxy0
              *   Proxy > org.apache.dubbo.common.bytecode.Proxy0
              */
 
             // create ProxyInstance class.
-            String pcn = pkg + ".proxy" + id;  // ex. org.apache.dubbo.proxy0
+            String pcn = pkg + ".proxy" + id;  // ex. org.apache.dubbo.common.bytecode.proxy0
             ccp.setClassName(pcn);
             ccp.addField("public static java.lang.reflect.Method[] methods;");
 
             // 生成 private java.lang.reflect.InvocationHandler handler;
             ccp.addField("private " + InvocationHandler.class.getName() + " handler;");
 
-            // 为接口代理类添加带有 InvocationHandler 参数的构造方法，比如：
-            // porxy0(java.lang.reflect.InvocationHandler arg0) {
-            //     handler=$1;
-            // }
+            /* 为接口代理类添加带有 InvocationHandler 参数的构造方法。ex.
+             * public proxy0(java.lang.reflect.InvocationHandler arg0){
+             *   handler=$1;
+             * }
+             */
             ccp.addConstructor(Modifier.PUBLIC, new Class<?>[]{InvocationHandler.class}, new Class<?>[0], "handler=$1;");
             ccp.addDefaultConstructor();
 
             Class<?> clazz = ccp.toClass();  // 生成接口代理类
+
+            // 设置 cpp 中的 `public static java.lang.reflect.Method[] methods = ...`
             clazz.getField("methods").set(null, methods.toArray(new Method[0]));
 
             // create Proxy class.
@@ -248,7 +263,7 @@ public abstract class Proxy {
             ccm.setSuperClass(Proxy.class);
             /* 实现 Proxy 的抽象方法 newInstance(...)，ex:
              *   public Object newInstance(java.lang.reflect.InvocationHandler h) {
-             *      return new org.apache.dubbo.proxy0($1);
+             *      return new org.apache.dubbo.common.bytecode.proxy0($1);
              *   }
              */
             ccm.addMethod("public Object newInstance(" + InvocationHandler.class.getName() + " h){ return new " + pcn + "($1); }");

@@ -18,6 +18,9 @@ package org.apache.dubbo.common.extension;
 
 /**
  * ExtensionFactory
+ * <p>vergilyn-comment, 2020-04-08 >>>> <br/>
+ *   用于扩展 SPI Factory，例如 AdaptiveExtensionFactory, SpiExtensionFactory, SpringExtensionFactory
+ * </p>
  */
 @SPI
 public interface ExtensionFactory {

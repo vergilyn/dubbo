@@ -83,6 +83,9 @@ public class ExtensionLoader<T> {
 
     private static final String DUBBO_DIRECTORY = "META-INF/dubbo/";
 
+    /**
+     * 该目录为 Dubbo 的内部扩展类目录
+     */
     private static final String DUBBO_INTERNAL_DIRECTORY = DUBBO_DIRECTORY + "internal/";
 
     private static final Pattern NAME_SEPARATOR = Pattern.compile("\\s*[,]+\\s*");
