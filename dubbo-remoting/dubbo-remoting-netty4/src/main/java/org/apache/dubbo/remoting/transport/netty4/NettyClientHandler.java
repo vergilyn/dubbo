@@ -108,8 +108,14 @@ public class NettyClientHandler extends ChannelDuplexHandler {
         // We add listeners to make sure our out bound event is correct.
         // If our out bound event has an error (in most cases the encoder fails),
         // we need to have the request return directly instead of blocking the invoke process.
+        /** vergilyn-comment, 2020-04-13 >>>>
+         * EX. handler -> {@link NettyClient}
+         */
         promise.addListener(future -> {
             if (future.isSuccess()) {
+                /** vergilyn-comment, 2020-04-13 >>>>
+                 * @see NettyClient#sent(Channel, Object)
+                 */
                 // if our future is success, mark the future to sent.
                 handler.sent(channel, msg);
                 return;

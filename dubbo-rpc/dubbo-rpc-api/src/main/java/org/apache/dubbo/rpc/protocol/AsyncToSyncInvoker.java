@@ -64,6 +64,9 @@ public class AsyncToSyncInvoker<T> implements Invoker<T> {
      */
     @Override
     public Result invoke(Invocation invocation) throws RpcException {
+        /** {@link sun.management.snmp.jvminstr.JvmRTClassPathTableMetaImpl.JvmRTClassPathTableCache}
+         * @see org.apache.dubbo.rpc.protocol.dubbo.DubboInvoker#invoke(org.apache.dubbo.rpc.Invocation)
+         */
         Result asyncResult = invoker.invoke(invocation);
 
         try {

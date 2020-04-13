@@ -16,6 +16,9 @@
  */
 package org.apache.dubbo.remoting.exchange.support.header;
 
+import java.net.InetSocketAddress;
+import java.util.concurrent.CompletionStage;
+
 import org.apache.dubbo.common.URL;
 import org.apache.dubbo.common.logger.Logger;
 import org.apache.dubbo.common.logger.LoggerFactory;
@@ -32,9 +35,6 @@ import org.apache.dubbo.remoting.exchange.Request;
 import org.apache.dubbo.remoting.exchange.Response;
 import org.apache.dubbo.remoting.exchange.support.DefaultFuture;
 import org.apache.dubbo.remoting.transport.ChannelHandlerDelegate;
-
-import java.net.InetSocketAddress;
-import java.util.concurrent.CompletionStage;
 
 import static org.apache.dubbo.common.constants.CommonConstants.READONLY_EVENT;
 
@@ -141,6 +141,9 @@ public class HeaderExchangeHandler implements ChannelHandlerDelegate {
         Throwable exception = null;
         try {
             ExchangeChannel exchangeChannel = HeaderExchangeChannel.getOrAddChannel(channel);
+            /** vergilyn-comment, 2020-04-13 >>>>
+             * EX. handler -> {@link org.apache.dubbo.rpc.protocol.dubbo.DubboProtocol#requestHandler}
+             */
             handler.sent(exchangeChannel, message);
         } catch (Throwable t) {
             exception = t;

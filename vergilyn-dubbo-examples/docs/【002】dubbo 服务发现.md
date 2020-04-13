@@ -2,6 +2,36 @@
 
 + [服务引用（服务发现）](http://dubbo.apache.org/zh-cn/docs/source_code_guide/refer-service.html)
 
+```text
+
+dubbo://169.254.65.244:20880/com.vergilyn.examples.api.ProviderFirstApi
+    ?anyhost=true
+    &application=dubbo-consumer-application
+    &category=providers
+    &check=false
+    &codec=dubbo
+    &deprecated=false
+    &dubbo=2.0.2
+    &dynamic=true
+    &generic=false
+    &heartbeat=60000
+    &init=false
+    &interface=com.vergilyn.examples.api.ProviderFirstApi
+    &logger=log4j2
+    &methods=sayHello,sayGoodbye
+    &path=com.vergilyn.examples.api.ProviderFirstApi
+    &pid=4572&protocol=dubbo
+    &register.ip=127.0.0.1
+    &release=2.7.6.RELEASE
+    &remote.application=dubbo-provider-application
+    &revision=1.0.0
+    &side=consumer
+    &sticky=false
+    &timeout=500000
+    &timestamp=1586742746618
+    &version=1.0.0
+```
+
 ## 2. `vergilyn-consumer-examples`
 
 ```java

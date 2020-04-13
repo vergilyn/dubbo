@@ -16,6 +16,8 @@
  */
 package org.apache.dubbo.remoting.transport.dispatcher;
 
+import java.util.concurrent.ExecutorService;
+
 import org.apache.dubbo.common.URL;
 import org.apache.dubbo.common.extension.ExtensionLoader;
 import org.apache.dubbo.common.logger.Logger;
@@ -28,8 +30,6 @@ import org.apache.dubbo.remoting.exchange.Request;
 import org.apache.dubbo.remoting.exchange.Response;
 import org.apache.dubbo.remoting.exchange.support.DefaultFuture;
 import org.apache.dubbo.remoting.transport.ChannelHandlerDelegate;
-
-import java.util.concurrent.ExecutorService;
 
 public class WrappedChannelHandler implements ChannelHandlerDelegate {
 
@@ -60,6 +60,9 @@ public class WrappedChannelHandler implements ChannelHandlerDelegate {
 
     @Override
     public void sent(Channel channel, Object message) throws RemotingException {
+        /** vergilyn-comment, 2020-04-13 >>>>
+         * EX. handler -> {@link org.apache.dubbo.remoting.transport.DecodeHandler#sent(Channel, Object)}
+         */
         handler.sent(channel, message);
     }
 

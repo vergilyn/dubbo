@@ -24,6 +24,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
+import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.ChannelPromise;
 import org.apache.dubbo.common.URL;
 import org.apache.dubbo.common.logger.Logger;
 import org.apache.dubbo.common.logger.LoggerFactory;
@@ -159,7 +161,9 @@ final class NettyChannel extends AbstractChannel {
         boolean success = true;
         int timeout = 0;
         try {
-            // NettyClient -> NettyBootstrap
+            /** vergilyn-comment, 2020-04-13 >>>> NettyClient -> NettyBootstrap
+             * @see NettyClientHandler#write(ChannelHandlerContext, Object, ChannelPromise)
+             */
             ChannelFuture future = channel.writeAndFlush(message);
             if (sent) {
                 // wait timeout ms

@@ -138,6 +138,9 @@ public class HeaderExchangeClient implements ExchangeClient {
 
     @Override
     public void send(Object message, boolean sent) throws RemotingException {
+        /** vergilyn-comment, 2020-04-13 >>>>
+         * EX. channel -> {@link HeaderExchangeChannel#send(Object, boolean)}
+         */
         channel.send(message, sent);
     }
 

@@ -50,6 +50,11 @@ public abstract class AbstractChannelHandlerDelegate implements ChannelHandlerDe
 
     @Override
     public void sent(Channel channel, Object message) throws RemotingException {
+        /** vergilyn-comment, 2020-04-13 >>>>
+         * EX.
+         *   handler -> {@link org.apache.dubbo.remoting.exchange.support.header.HeartbeatHandler#sent(Channel, Object)}
+         *   handler -> {@link org.apache.dubbo.remoting.exchange.support.header.HeaderExchangeHandler#sent(Channel, Object)}
+         */
         handler.sent(channel, message);
     }
 

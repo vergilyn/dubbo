@@ -100,7 +100,7 @@ final class HeaderExchangeChannel implements ExchangeChannel {
         }
 
         /** vergilyn-comment, 2020-04-10 >>>>
-         * `channel.send(...)` -> {@linkplain org.apache.dubbo.remoting.transport.netty4.NettyClient#send(java.lang.Object, boolean)}
+         * `channel.send(...)` -> {@link org.apache.dubbo.remoting.transport.netty4.NettyClient#send(java.lang.Object, boolean)}
          */
         if (message instanceof Request
                 || message instanceof Response

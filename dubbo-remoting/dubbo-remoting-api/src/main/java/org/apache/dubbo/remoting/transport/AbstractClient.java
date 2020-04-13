@@ -179,6 +179,9 @@ public abstract class AbstractClient extends AbstractEndpoint implements Client 
             connect();
         }
 
+        /** vergilyn-comment, 2020-04-13 >>>>
+         * ex. {@link org.apache.dubbo.remoting.transport.netty4.NettyClient#getChannel()}
+         */
         Channel channel = getChannel();
         //TODO Can the value returned by getChannel() be null? need improvement.
         if (channel == null || !channel.isConnected()) {

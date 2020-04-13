@@ -58,6 +58,9 @@ public class HeartbeatHandler extends AbstractChannelHandlerDelegate {
     @Override
     public void sent(Channel channel, Object message) throws RemotingException {
         setWriteTimestamp(channel);
+        /** vergilyn-comment, 2020-04-13 >>>>
+         * EX. handler -> {@link org.apache.dubbo.remoting.transport.dispatcher.all.AllChannelHandler#sent(Channel, Object)}
+         */
         handler.sent(channel, message);
     }
 

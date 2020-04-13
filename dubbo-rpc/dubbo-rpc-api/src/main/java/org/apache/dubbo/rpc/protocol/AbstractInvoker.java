@@ -159,8 +159,7 @@ public abstract class AbstractInvoker<T> implements Invoker<T> {
 
         AsyncRpcResult asyncResult;
         try {
-            /**
-             * {@linkplain #doInvoke(Invocation)} 需要子类具体实现
+            /** vergilyn-comment, 2020-04-13 >>>>
              * ex. {@linkplain org.apache.dubbo.rpc.protocol.dubbo.DubboInvoker#doInvoke(org.apache.dubbo.rpc.Invocation)}
              */
             asyncResult = (AsyncRpcResult) doInvoke(invocation);

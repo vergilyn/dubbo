@@ -86,12 +86,8 @@ public class InvokerInvocationHandler implements InvocationHandler {
             rpcInvocation.put(Constants.METHOD_MODEL, consumerModel.getMethodModel(method));
         }
 
-        /** vergilyn-comment, 2020-04-10 >>>>
-         * ex.
-         *   -> {@link AsyncToSyncInvoker#invoke(org.apache.dubbo.rpc.Invocation)}
-         *   -> {@link org.apache.dubbo.rpc.protocol.dubbo.DubboInvoker#invoke(org.apache.dubbo.rpc.Invocation)}
-         *   -> {@link org.apache.dubbo.rpc.protocol.dubbo.DubboInvoker#doInvoke(org.apache.dubbo.rpc.Invocation)}
-         *   -> {@linkplain org.apache.dubbo.remoting.transport.netty4.NettyChannel#send(java.lang.Object, boolean)}
+        /** vergilyn-comment, 2020-04-13 >>>>
+         * @see org.apache.dubbo.rpc.protocol.AsyncToSyncInvoker#invoke(org.apache.dubbo.rpc.Invocation)
          */
         return invoker.invoke(rpcInvocation).recreate();
     }

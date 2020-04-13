@@ -29,8 +29,6 @@ import org.apache.dubbo.remoting.RemotingException;
 import org.apache.dubbo.remoting.TimeoutException;
 import org.apache.dubbo.remoting.exchange.ExchangeClient;
 import org.apache.dubbo.remoting.exchange.support.header.HeaderExchangeClient;
-import org.apache.dubbo.remoting.exchange.support.header.HeaderExchanger;
-import org.apache.dubbo.remoting.transport.AbstractClient;
 import org.apache.dubbo.rpc.AppResponse;
 import org.apache.dubbo.rpc.AsyncRpcResult;
 import org.apache.dubbo.rpc.FutureContext;
@@ -40,7 +38,6 @@ import org.apache.dubbo.rpc.Result;
 import org.apache.dubbo.rpc.RpcException;
 import org.apache.dubbo.rpc.RpcInvocation;
 import org.apache.dubbo.rpc.protocol.AbstractInvoker;
-import org.apache.dubbo.rpc.protocol.AbstractProtocol;
 import org.apache.dubbo.rpc.support.RpcUtils;
 
 import static org.apache.dubbo.common.constants.CommonConstants.DEFAULT_TIMEOUT;
@@ -56,17 +53,6 @@ import static org.apache.dubbo.rpc.Constants.TOKEN_KEY;
  */
 public class DubboInvoker<T> extends AbstractInvoker<T> {
 
-    /**
-     * vergilyn-comment, 2020-04-10 >>>>
-     * <pre>ex.
-     *   -> {@linkplain AbstractProtocol#refer(java.lang.Class, org.apache.dubbo.common.URL)}
-     *   -> {@linkplain DubboProtocol#protocolBindingRefer(java.lang.Class, org.apache.dubbo.common.URL)}
-     *   -> {@linkplain DubboProtocol#getClients(org.apache.dubbo.common.URL)}
-     *   -> {@linkplain DubboProtocol#initClient(org.apache.dubbo.common.URL)}
-     *   -> {@linkplain HeaderExchanger#connect(org.apache.dubbo.common.URL, org.apache.dubbo.remoting.exchange.ExchangeHandler)}
-     *   -> {@linkplain org.apache.dubbo.remoting.transport.netty4.NettyClient}
-     * </pre>
-     */
     private final ExchangeClient[] clients;
 
     private final AtomicPositiveInteger index = new AtomicPositiveInteger();
@@ -111,10 +97,7 @@ public class DubboInvoker<T> extends AbstractInvoker<T> {
                 boolean isSent = getUrl().getMethodParameter(methodName, Constants.SENT_KEY, false);
 
                 /** vergilyn-comment, 2020-04-10 >>>>
-                 * ex.
-                 *   -> {@linkplain HeaderExchanger#connect(org.apache.dubbo.common.URL, org.apache.dubbo.remoting.exchange.ExchangeHandler)}
-                 *   -> currentClient == {@linkplain HeaderExchangeClient}
-                 *   -> {@linkplain org.apache.dubbo.remoting.transport.netty4.NettyChannel#send(java.lang.Object, boolean)}
+                 * EX. currentClient -> {@link HeaderExchangeClient#send(Object, boolean)}
                  */
                 currentClient.send(inv, isSent);
 
@@ -123,12 +106,8 @@ public class DubboInvoker<T> extends AbstractInvoker<T> {
                 ExecutorService executor = getCallbackExecutor(getUrl(), inv);
 
                 /** vergilyn-comment, 2020-04-10 >>>>
-                 * ex.
-                 *   -> {@linkplain HeaderExchangeClient#request(java.lang.Object, int, java.util.concurrent.ExecutorService)}
-                 *   -> {@linkplain org.apache.dubbo.remoting.exchange.support.header.HeaderExchangeChannel#request(java.lang.Object, int, java.util.concurrent.ExecutorService)}
-                 *   -> {@linkplain org.apache.dubbo.remoting.transport.netty4.NettyClient#send(java.lang.Object)}
-                 *   -> {@linkplain AbstractClient#send(java.lang.Object, boolean)}
-                 *
+                 * EX.
+                 *   currentClient -> {@linkplain HeaderExchangeClient#request(java.lang.Object, int, java.util.concurrent.ExecutorService)}
                  */
                 CompletableFuture<AppResponse> appResponseFuture =
                         currentClient.request(inv, timeout, executor).thenApply(obj -> (AppResponse) obj);
