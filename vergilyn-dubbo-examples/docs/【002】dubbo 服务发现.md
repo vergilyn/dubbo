@@ -3,8 +3,7 @@
 + [服务引用（服务发现）](http://dubbo.apache.org/zh-cn/docs/source_code_guide/refer-service.html)
 
 ```text
-
-dubbo://169.254.65.244:20880/com.vergilyn.examples.api.ProviderFirstApi
+dubbo://127.0.0.1:20880/com.vergilyn.examples.api.ProviderFirstApi
     ?anyhost=true
     &application=dubbo-consumer-application
     &category=providers
@@ -34,47 +33,6 @@ dubbo://169.254.65.244:20880/com.vergilyn.examples.api.ProviderFirstApi
 
 ## 2. `vergilyn-consumer-examples`
 
-```java
-package com.vergilyn.examples.config;
-
-@Configuration
-@EnableDubbo(scanBasePackages = "com.vergilyn.examples.service", multipleConfig = true)
-@PropertySource("classpath:/dubbo-consumer.properties")
-public class ConsumerAutoConfiguration {
-
-}
-```
-
-```java
-package com.vergilyn.examples;
-
-@SpringBootApplication
-@Slf4j
-public class ConsumerExamplesApplication {
-
-    @Reference(version = ApiConstants.SERVICE_VERSION, timeout = 2000)
-    private ProviderServiceApi providerServiceApi;
-
-    public static void main(String[] args) {
-        SpringApplication application = new SpringApplication(ConsumerExamplesApplication.class);
-        application.run(args);
-    }
-
-    @Bean
-    public ApplicationRunner runner() {
-        return args -> log.info(providerServiceApi.sayHello("vergilyn"));
-    }
-
-}
-```
-
-dubbo-consumer.properties:  
-```properties
-dubbo.application.name=${spring.application.name}
-dubbo.registry.address=nacos://127.0.0.1:8848
-dubbo.consumer.timeout=1000
-```
-
 ### 2.1 FAQ
 
 #### 2.1.1 registry-center: NACOS, `No provider available...`
@@ -101,7 +59,7 @@ to the consumer 127.0.0.1 use dubbo version
 + [issues#5871](https://github.com/apache/dubbo/issues/5871)
 + [issues#5885](https://github.com/apache/dubbo/issues/5885): 个人提的issues
 
-dubbo中会有很多原因导致"no provider available"，个人实际遇到的是：因为nacos与dubbo v2.7.6的bug导致。
+dubbo中会有很多原因导致"no provider available"，个人实际遇到的是：**因为nacos与dubbo v2.7.6的bug导致。**
 
 **异常原因分析过程**
 

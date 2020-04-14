@@ -94,11 +94,9 @@ public class NettyClientHandler extends ChannelDuplexHandler {
     public void write(ChannelHandlerContext ctx, Object msg, ChannelPromise promise) throws Exception {
 
         /** vergilyn-comment, 2020-04-09 >>>>
-         *   传递给下一个 outbound，即发送msg给netty-server
+         *   传递给下一个 outbound（即发送msg给netty-server）
          *
          * 后续 dubbo NettyClientHandler 调用的 `handler.sent()` 貌似只做一个标记。
-         * 调用栈：MultiMessageHandler->HeartbeatHandler->HeaderExchangeHandler->handler
-         * 最终handler -> {@link org.apache.dubbo.rpc.protocol.dubbo.DubboProtocol#requestHandler}
          */
         super.write(ctx, msg, promise);
 

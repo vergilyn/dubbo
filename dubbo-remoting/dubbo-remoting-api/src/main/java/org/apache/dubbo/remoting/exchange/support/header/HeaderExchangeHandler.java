@@ -149,10 +149,12 @@ public class HeaderExchangeHandler implements ChannelHandlerDelegate {
             exception = t;
             HeaderExchangeChannel.removeChannelIfDisconnected(channel);
         }
+
         if (message instanceof Request) {
             Request request = (Request) message;
             DefaultFuture.sent(channel, request);
         }
+
         if (exception != null) {
             if (exception instanceof RuntimeException) {
                 throw (RuntimeException) exception;

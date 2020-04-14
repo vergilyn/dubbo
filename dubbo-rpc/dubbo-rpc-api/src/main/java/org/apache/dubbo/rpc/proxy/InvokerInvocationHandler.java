@@ -21,6 +21,7 @@ import java.lang.reflect.Method;
 
 import org.apache.dubbo.common.logger.Logger;
 import org.apache.dubbo.common.logger.LoggerFactory;
+import org.apache.dubbo.rpc.AsyncRpcResult;
 import org.apache.dubbo.rpc.Constants;
 import org.apache.dubbo.rpc.Invoker;
 import org.apache.dubbo.rpc.RpcInvocation;
@@ -87,7 +88,9 @@ public class InvokerInvocationHandler implements InvocationHandler {
         }
 
         /** vergilyn-comment, 2020-04-13 >>>>
-         * @see org.apache.dubbo.rpc.protocol.AsyncToSyncInvoker#invoke(org.apache.dubbo.rpc.Invocation)
+         * EX.
+         *   -> {@link org.apache.dubbo.rpc.protocol.AsyncToSyncInvoker#invoke(org.apache.dubbo.rpc.Invocation)}
+         *   -> {@link AsyncRpcResult#recreate()}
          */
         return invoker.invoke(rpcInvocation).recreate();
     }

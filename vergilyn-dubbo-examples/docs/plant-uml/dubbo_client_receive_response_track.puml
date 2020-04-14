@@ -1,0 +1,73 @@
+@startuml
+skinparam DefaultFontSize 18
+
+skinparam activity{
+  BackgroundColor<< important >> LightSkyBlue
+  BackgroundColor<< special >> 	#E0FFFF
+  BackgroundColor<< extra >> 	#C1FFC1
+}
+title consumer接收provider返回的的结果
+
+(*)  --> "NettyClientHandler#(ChannelHandlerContext ctx, Object msg)" AS NettyClientHandler
+
+NettyClientHandler -->[ handler] "NettyClient" AS NettyClient
+
+NettyClient --> "NettyClient#received(Channel, Object)"
+--> "MultiMessageHandler#received(Channel, Object)"
+--> "HeartbeatHandler#received(Channel, Object)"
+--> "AllChannelHandler#received(Channel, Object)"
+
+..> "<color:purple>new</color> ChannelEventRunnable(Channel channel, ChannelHandler handler, ChannelState state, Object message)" AS ChannelEventRunnable <<important>>
+note right
+`ChannelEventRunnable implements Runnable`
+ExecutorService.execute(new ChannelEventRunnable(channel, handler, ChannelState.RECEIVED, message));
+endnote
+
+ChannelEventRunnable ..> "channel -> netty-channel" << extra >>
+ChannelEventRunnable ..> "handler" AS ChannelEventRunnable.handler << extra >>
+ChannelEventRunnable ..> "state = ChannelState.RECEIVED" << extra >>
+ChannelEventRunnable ..> "message -> provider-side result" << extra >>
+
+ChannelEventRunnable.handler ..> "<color:purple>new</color> DecodeHandler(ChannelHandler handler)" AS DecodeHandler << extra >>
+
+DecodeHandler ..> "ChannelEventRunnable#run()" AS ChannelEventRunnable.run
+
+-->[ message instanceof Response] "DecodeHandler#received(Channel channel, Object message)"
+
+--> "HeaderExchangeHandler#received(Channel channel, Object message)"
+
+--> "HeaderExchangeHandler#handleResponse(Channel channel, Response response)"
+
+--> "DefaultFuture#received(Channel channel, Response response, boolean timeout)" AS DefaultFuture.received
+DefaultFuture.received ..> [DefaultFuture.FUTURES] "private static final Map<Long, DefaultFuture> FUTURES = new ConcurrentHashMap<>();" <<special>>
+note right #E0FFFF
+FUTURES.put() 的创建:
+consumer-provider 进行双向信息传递时，consumer会调用
+ -> `DubboInvoker#doInvoke()`
+ -> `HeaderExchangeClient#request()`
+ -> `HeaderExchangeChannel#request()`
+ -> **`DefaultFuture.newFuture(channel, req, timeout, executor)`**
+ -> `DefaultFuture.FUTURES.put(...)`
+endnote
+
+..>[ timeout = false] "DefaultFuture#doReceived(Response res)"
+-->[ Response.OK] "java.util.concurrent.CompletableFuture#complete(T value)"
+
+--> "DubboInvoker#doInvoke(final Invocation invocation)"
+-->[ return Result.class;] "AbstractInvoker#invoke(Invocation inv)"
+-->[ return AsyncRpcResult.class;] "InvokerInvocationHandler#invoke(Object proxy, Method method, Object[] args)"
+..> "<color:purple>new</color> AsyncRpcResult(CompletableFuture<AppResponse> future, Invocation invocation)" AS AsyncRpcResult
+note right
+see:
+- `DubboInvoker#doInvoke(final Invocation invocation)`, 根据Result创建AsyncRpcResult
+- `AbstractInvoker#invoke(Invocation inv)` -> `invocation.setInvokeMode(...);`
+endnote
+AsyncRpcResult ..> "responseFuture -> DefaultFuture" << extra >>
+AsyncRpcResult ..> "invocation -> InvokerInvocationHandler#invoke(...) 创建" << extra >>
+
+AsyncRpcResult --> "AsyncRpcResult#recreate()"
+--> "CompletableFuture<AppResponse>.get()"
+
+--> (*)
+
+@enduml

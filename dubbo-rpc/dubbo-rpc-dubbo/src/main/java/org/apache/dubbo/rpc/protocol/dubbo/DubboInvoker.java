@@ -24,10 +24,13 @@ import java.util.concurrent.locks.ReentrantLock;
 import org.apache.dubbo.common.URL;
 import org.apache.dubbo.common.config.ConfigurationUtils;
 import org.apache.dubbo.common.utils.AtomicPositiveInteger;
+import org.apache.dubbo.remoting.Channel;
 import org.apache.dubbo.remoting.Constants;
 import org.apache.dubbo.remoting.RemotingException;
 import org.apache.dubbo.remoting.TimeoutException;
 import org.apache.dubbo.remoting.exchange.ExchangeClient;
+import org.apache.dubbo.remoting.exchange.Request;
+import org.apache.dubbo.remoting.exchange.support.DefaultFuture;
 import org.apache.dubbo.remoting.exchange.support.header.HeaderExchangeClient;
 import org.apache.dubbo.rpc.AppResponse;
 import org.apache.dubbo.rpc.AsyncRpcResult;
@@ -107,7 +110,9 @@ public class DubboInvoker<T> extends AbstractInvoker<T> {
 
                 /** vergilyn-comment, 2020-04-10 >>>>
                  * EX.
-                 *   currentClient -> {@linkplain HeaderExchangeClient#request(java.lang.Object, int, java.util.concurrent.ExecutorService)}
+                 *   currentClient -> {@link HeaderExchangeClient#request(java.lang.Object, int, java.util.concurrent.ExecutorService)},
+                 *     内部会调用{@link DefaultFuture#newFuture(Channel, Request, int, ExecutorService)}创建接收结果的 future。
+                 *
                  */
                 CompletableFuture<AppResponse> appResponseFuture =
                         currentClient.request(inv, timeout, executor).thenApply(obj -> (AppResponse) obj);

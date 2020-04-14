@@ -86,45 +86,4 @@ NettyClient.childHandler -[#Navy]-> "<color:purple>new</color> NettyClientHandle
 NettyClientHandler --> "handler" AS NettyClientHandler.handler
 NettyClientHandler.handler -[#green]-> NettyClient
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 @enduml

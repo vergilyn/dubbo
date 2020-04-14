@@ -16,6 +16,9 @@
  */
 package org.apache.dubbo.remoting.transport.dispatcher.all;
 
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.RejectedExecutionException;
+
 import org.apache.dubbo.common.URL;
 import org.apache.dubbo.remoting.Channel;
 import org.apache.dubbo.remoting.ChannelHandler;
@@ -25,9 +28,6 @@ import org.apache.dubbo.remoting.exchange.Request;
 import org.apache.dubbo.remoting.transport.dispatcher.ChannelEventRunnable;
 import org.apache.dubbo.remoting.transport.dispatcher.ChannelEventRunnable.ChannelState;
 import org.apache.dubbo.remoting.transport.dispatcher.WrappedChannelHandler;
-
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.RejectedExecutionException;
 
 public class AllChannelHandler extends WrappedChannelHandler {
 
@@ -59,6 +59,9 @@ public class AllChannelHandler extends WrappedChannelHandler {
     public void received(Channel channel, Object message) throws RemotingException {
         ExecutorService executor = getPreferredExecutorService(message);
         try {
+            /** vergilyn-comment, 2020-04-14 >>>>
+             * EX. handler -> {@link org.apache.dubbo.remoting.transport.DecodeHandler}
+             */
             executor.execute(new ChannelEventRunnable(channel, handler, ChannelState.RECEIVED, message));
         } catch (Throwable t) {
         	if(message instanceof Request && t instanceof RejectedExecutionException){

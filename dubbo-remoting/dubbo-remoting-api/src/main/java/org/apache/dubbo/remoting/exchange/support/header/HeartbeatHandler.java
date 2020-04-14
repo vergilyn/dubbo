@@ -92,7 +92,7 @@ public class HeartbeatHandler extends AbstractChannelHandlerDelegate {
         }
 
         /** vergilyn-comment, 2020-04-10 >>>>
-         * ex. netty-client 接收netty-server 返回的response, {@link }
+         * ex. netty-client 接收netty-server 返回的response, {@link org.apache.dubbo.remoting.transport.dispatcher.all.AllChannelHandler#received(Channel, Object)}
          */
         handler.received(channel, message);
     }

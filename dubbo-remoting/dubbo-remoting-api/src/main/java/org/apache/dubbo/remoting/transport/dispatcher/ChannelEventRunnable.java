@@ -24,8 +24,18 @@ import org.apache.dubbo.remoting.ChannelHandler;
 public class ChannelEventRunnable implements Runnable {
     private static final Logger logger = LoggerFactory.getLogger(ChannelEventRunnable.class);
 
+    /** vergilyn-comment, 2020-04-14 >>>>
+     * EX.
+     *   handler -> {@link org.apache.dubbo.remoting.transport.DecodeHandler}, consumer接收provider结果
+     */
     private final ChannelHandler handler;
+
+    /** vergilyn-comment, 2020-04-14 >>>>
+     * EX.
+     *   channel -> netty-channel, {@link org.apache.dubbo.remoting.transport.netty4.NettyClient}
+     */
     private final Channel channel;
+
     private final ChannelState state;
     private final Throwable exception;
     private final Object message;
@@ -53,6 +63,10 @@ public class ChannelEventRunnable implements Runnable {
     @Override
     public void run() {
         if (state == ChannelState.RECEIVED) {
+            /** vergilyn-comment, 2020-04-14 >>>>
+             * EX.
+             *   handler -> {@linkplain org.apache.dubbo.remoting.transport.DecodeHandler#received(Channel, Object)}, consumer received provider result
+             */
             try {
                 handler.received(channel, message);
             } catch (Exception e) {

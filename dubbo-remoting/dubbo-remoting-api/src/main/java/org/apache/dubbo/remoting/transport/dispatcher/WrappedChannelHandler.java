@@ -35,6 +35,10 @@ public class WrappedChannelHandler implements ChannelHandlerDelegate {
 
     protected static final Logger logger = LoggerFactory.getLogger(WrappedChannelHandler.class);
 
+    /** vergilyn-comment, 2020-04-14 >>>>
+     * EX.
+     *   handler -> {@link org.apache.dubbo.remoting.transport.DecodeHandler}
+     */
     protected final ChannelHandler handler;
 
     protected final URL url;

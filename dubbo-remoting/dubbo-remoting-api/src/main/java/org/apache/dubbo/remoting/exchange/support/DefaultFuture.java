@@ -16,6 +16,14 @@
  */
 package org.apache.dubbo.remoting.exchange.support;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Map;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.TimeUnit;
+
 import org.apache.dubbo.common.logger.Logger;
 import org.apache.dubbo.common.logger.LoggerFactory;
 import org.apache.dubbo.common.threadpool.ThreadlessExecutor;
@@ -30,14 +38,6 @@ import org.apache.dubbo.remoting.TimeoutException;
 import org.apache.dubbo.remoting.exchange.Request;
 import org.apache.dubbo.remoting.exchange.Response;
 
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.Map;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.TimeUnit;
-
 import static org.apache.dubbo.common.constants.CommonConstants.DEFAULT_TIMEOUT;
 import static org.apache.dubbo.common.constants.CommonConstants.TIMEOUT_KEY;
 
@@ -50,6 +50,19 @@ public class DefaultFuture extends CompletableFuture<Object> {
 
     private static final Map<Long, Channel> CHANNELS = new ConcurrentHashMap<>();
 
+    /** vergilyn-comment, 2020-04-14 >>>>
+     * EX.
+     * <pre> consumer-provider 进行双向信息传递时，consumer在发送请求时
+     *   -> {@link org.apache.dubbo.rpc.protocol.dubbo.DubboInvoker#doInvoke(org.apache.dubbo.rpc.Invocation)}
+     *   -> {@link org.apache.dubbo.remoting.exchange.support.header.HeaderExchangeChannel#request(java.lang.Object, int, java.util.concurrent.ExecutorService)}
+     *
+     *   会调用 {@link #newFuture(Channel, Request, int, ExecutorService)}从而调用 <code>{@link #FUTURES}.put(...)</code>
+     *   之后consumer在接收到provider返回的结果时，再通过key从{@link #FUTURES}中获取对应的 DefaultFuture。
+     * </pre>
+     *
+     * @key id
+     * @value DefaultFuture
+     */
     private static final Map<Long, DefaultFuture> FUTURES = new ConcurrentHashMap<>();
 
     public static final Timer TIME_OUT_TIMER = new HashedWheelTimer(

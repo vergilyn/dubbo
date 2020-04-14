@@ -154,6 +154,9 @@ public abstract class AbstractInvoker<T> implements Invoker<T> {
             invocation.addObjectAttachments(contextAttachments);
         }
 
+        /** vergilyn-comment, 2020-04-14 >>>>
+         * invokeMode 涉及到结果的获取, see: {@link AsyncRpcResult#recreate()}
+         */
         invocation.setInvokeMode(RpcUtils.getInvokeMode(url, invocation));
         RpcUtils.attachInvocationIdIfAsync(getUrl(), invocation);
 
