@@ -105,6 +105,9 @@ public class DubboProtocol extends AbstractProtocol {
     private final ConcurrentMap<String, Object> locks = new ConcurrentHashMap<>();
     private final Set<String> optimizers = new ConcurrentHashSet<>();
 
+    /** vergilyn-comment, 2020-04-14 >>>> IMPORTANT
+     *   provider/consumer 的核心处理对象。（ex. Netty通信中的pipeline-handler，client 和 server 共用类）
+     */
     private ExchangeHandler requestHandler = new ExchangeHandlerAdapter() {
 
         @Override
@@ -117,7 +120,8 @@ public class DubboProtocol extends AbstractProtocol {
             }
 
             Invocation inv = (Invocation) message;
-            Invoker<?> invoker = getInvoker(channel, inv);
+            Invoker<?> invoker = getInvoker(channel, inv);  // IMPORTANT
+
             // need to consider backward-compatibility if it's a callback
             if (Boolean.TRUE.toString().equals(inv.getObjectAttachments().get(IS_CALLBACK_SERVICE_INVOKE))) {
                 String methodsStr = invoker.getUrl().getParameters().get("methods");
@@ -141,6 +145,7 @@ public class DubboProtocol extends AbstractProtocol {
                     return null;
                 }
             }
+
             RpcContext.getContext().setRemoteAddress(channel.getRemoteAddress());
             Result result = invoker.invoke(inv);
             return result.thenApply(Function.identity());
@@ -233,6 +238,10 @@ public class DubboProtocol extends AbstractProtocol {
                         .equals(NetUtils.filterLocalHost(address.getAddress().getHostAddress()));
     }
 
+    /** vergilyn-comment, 2020-04-15 >>>> IMPORTANT
+     *  通过 serviceKey(ex. `com.vergilyn.examples.api.ProviderFirstApi:1.0.0:20880`)
+     *  从{@linkplain #exporterMap} 获取invoker
+     */
     Invoker<?> getInvoker(Channel channel, Invocation inv) throws RemotingException {
         boolean isCallBackServiceInvoke = false;
         boolean isStubServiceInvoke = false;
@@ -302,7 +311,7 @@ public class DubboProtocol extends AbstractProtocol {
         }
         //endregion 本地存根相关代码
 
-        openServer(url);
+        openServer(url);  // IMPORTANT
         optimizeSerialization(url);
 
         return exporter;
@@ -325,7 +334,7 @@ public class DubboProtocol extends AbstractProtocol {
                 synchronized (this) {
                     server = serverMap.get(key);
                     if (server == null) {
-                        serverMap.put(key, createServer(url));  // 创建服务器实例
+                        serverMap.put(key, createServer(url));  // IMPORTANT, 创建服务器实例
                     }
                 }
             } else {

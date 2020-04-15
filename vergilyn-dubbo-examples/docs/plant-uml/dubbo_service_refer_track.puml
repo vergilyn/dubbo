@@ -61,9 +61,9 @@ HeaderExchangeHandler -->[ handler] CoreHandler
 
 HeaderExchangeClient -->[ channel] "<color:purple>new</color> HeaderExchangeChannel(Channel channel)" AS HeaderExchangeChannel.channel
 
-HeaderExchangeChannel.channel -->[ channel] NettyClient
+HeaderExchangeChannel.channel -->[ channel] "<color:purple>new</color> NettyClient(URL url, final ChannelHandler handler)" AS NettyClient <<important>>
 
-HeaderExchangeClient -->[ client] "<color:purple>new</color> NettyClient(URL url, final ChannelHandler handler)" AS NettyClient <<important>>
+HeaderExchangeClient -->[ client] NettyClient
 
 NettyClient -->[ handler] "<color:purple>new</color> MultiMessageHandler(ChannelHandler handler)" AS MultiMessageHandler
 MultiMessageHandler -->[ handler] "<color:purple>new</color> HeartbeatHandler(ChannelHandler handler)" AS HeartbeatHandler
@@ -77,7 +77,7 @@ NettyChannel.channel -[#green]-> NettyClient.channel
 NettyChannel --> "handler" AS NettyChannel.handler
 NettyChannel.handler -[#green]-> NettyClient
 
-NettyClient.channel -[#Navy]->[ NettyClient childHandler] "
+NettyClient.channel -[#Navy]->[ NettyClient netty-pipeline] "
 decoder, <color:purple>new</color> InternalDecoder()
 encoder, <color:purple>new</color> InternalEncoder()
 client-idle-handler, <color:purple>new</color> IdleStateHandler(heartbeatInterval, 0, 0, MILLISECONDS)" AS NettyClient.childHandler

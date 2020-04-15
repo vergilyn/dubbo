@@ -65,7 +65,7 @@ public class ChannelEventRunnable implements Runnable {
         if (state == ChannelState.RECEIVED) {
             /** vergilyn-comment, 2020-04-14 >>>>
              * EX.
-             *   handler -> {@linkplain org.apache.dubbo.remoting.transport.DecodeHandler#received(Channel, Object)}, consumer received provider result
+             *   [provider & consumer] handler -> {@link org.apache.dubbo.remoting.transport.DecodeHandler#received(Channel, Object)}
              */
             try {
                 handler.received(channel, message);

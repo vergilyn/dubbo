@@ -1,0 +1,58 @@
+@startuml
+skinparam DefaultFontSize 18
+
+skinparam activity{
+  BackgroundColor<< important >> LightSkyBlue
+}
+
+title service-provider track
+
+(*)  --> "DubboBootstrap#start()"
+--> "DubboBootstrap#exportServices()"
+--> "ServiceConfig#export()"
+--> "ServiceConfig#doExportUrlsFor1Protocol(ProtocolConfig protocolConfig, List<URL> registryURLs)" AS ServiceConfig << important   >>
+
+ServiceConfig ..>[ <color:red>invoker] "invoker" AS ServiceConfig.invoker << important >>
+-->[ JavassistProxyFactory#getInvoker(T proxy, Class<T> type, URL url)] "**anonymous-class**, <color:purple>new</color> AbstractProxyInvoker<T>()" AS AbstractProxyInvoker
+-->[ wrapper] "1"
+
+ServiceConfig --> "DubboProtocol#export(Invoker<T> invoker)"
+--> "DubboProtocol#createServer(URL url)" AS DubboProtocol.createServer << important >>
+
+DubboProtocol.createServer ..>[ <color:BLUE>**handler**</color>] "**anonymous-class**, <color:red>**DubboProtocol.requestHandler**</color>" AS CoreHandler <<important>>
+
+DubboProtocol.createServer -->[ <color:RED>create Netty-Server</color>] "HeaderExchanger#bind(URL url, ExchangeHandler handler)" AS CreateNettyServer
+
+CreateNettyServer ..> "<color:purple>new</color> HeaderExchangeServer(RemotingServer server)" AS HeaderExchangeServer
+
+HeaderExchangeServer -->[server] "<color:purple>new</color> NettyServer(URL url, final ChannelHandler handler)" AS NettyServer <<important>>
+
+HeaderExchangeServer .[#Indigo].>[ handler] "<color:purple>new</color> DecodeHandler(ChannelHandler handler)" AS DecodeHandler
+DecodeHandler -->[ handler] "<color:purple>new</color> HeaderExchangeHandler(ExchangeHandler handler)" AS HeaderExchangeHandler
+HeaderExchangeHandler -->[ handler] CoreHandler
+
+NettyServer -->[ handler] "<color:purple>new</color> MultiMessageHandler(ChannelHandler handler)" AS MultiMessageHandler
+MultiMessageHandler -->[ handler] "<color:purple>new</color> HeartbeatHandler(ChannelHandler handler)" AS HeartbeatHandler
+HeartbeatHandler -->[ handler] "<color:purple>new</color> AllChannelHandler(ChannelHandler handler, URL url)" AS AllChannelHandler
+AllChannelHandler -->[ handler] DecodeHandler
+
+NettyServer -[#Indigo]->[ ServerBootstrap childHandler] "NettyServer#doOpen()" AS ServerBootstrap.childHandler
+ServerBootstrap.childHandler -[#Navy]->[ ServerBootstrap childHandler] "
+decoder, <color:purple>new</color> InternalDecoder()
+encoder, <color:purple>new</color> InternalEncoder()
+server-idle-handler, <color:purple>new</color> IdleStateHandler(0, 0, idleTimeout, MILLISECONDS)" AS NettyServer.childHandler
+
+NettyServer.childHandler -[#Navy]-> "<color:purple>new</color> NettyServerHandler(URL url, ChannelHandler handler)" AS NettyServerHandler <<important>>
+NettyServerHandler --> "NettyServerHandler.handler" AS NettyServerHandler.handler
+NettyServerHandler.handler -[#green]-> NettyServer
+
+NettyServer -->[ channels] "Map<String:{address}, Channel:{NettyChannel}>" AS NettyServer.channels
+
+NettyServer.channels ..> "<color:purple>new</color> NettyChannel(Channel channel, URL url, ChannelHandler handler)" AS NettyChannel
+NettyChannel --> "channel -> netty-server-childHandler"
+NettyChannel --> "NettyChannel.handler" AS NettyChannel.handler
+NettyChannel.handler -[#green]-> NettyServerHandler.handler
+
+CoreHandler -->[ message instanceof Request.class] "HeaderExchangeHandler#received(Channel channel, Object message)"
+-->[ <color:BLUE>msg instanceof RpcInvocation.class\n] "DubboProtocol.requestHandler#reply(ExchangeChannel channel, Object message)"
+@enduml

@@ -60,7 +60,8 @@ public class AllChannelHandler extends WrappedChannelHandler {
         ExecutorService executor = getPreferredExecutorService(message);
         try {
             /** vergilyn-comment, 2020-04-14 >>>>
-             * EX. handler -> {@link org.apache.dubbo.remoting.transport.DecodeHandler}
+             * EX.
+             *   handler -> {@link org.apache.dubbo.remoting.transport.DecodeHandler}
              */
             executor.execute(new ChannelEventRunnable(channel, handler, ChannelState.RECEIVED, message));
         } catch (Throwable t) {

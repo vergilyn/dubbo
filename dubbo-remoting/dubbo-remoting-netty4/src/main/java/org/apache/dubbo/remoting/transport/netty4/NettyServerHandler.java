@@ -98,12 +98,12 @@ public class NettyServerHandler extends ChannelDuplexHandler {
         }
     }
 
-    /* vergilyn-comment, 2020-03-31 >>>>
-     *   由 constructor 可知，`handler#received(...)` 实际调用的是 `NettyServer#received(...)`
-     */
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
         NettyChannel channel = NettyChannel.getOrAddChannel(ctx.channel(), url, handler);
+        /** vergilyn-comment, 2020-04-14 >>>>
+         * EX. [provider]handler -> {@link NettyServer#received(Channel, Object)}
+         */
         handler.received(channel, msg);
     }
 

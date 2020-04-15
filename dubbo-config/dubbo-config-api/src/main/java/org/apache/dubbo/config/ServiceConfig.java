@@ -516,17 +516,12 @@ public class ServiceConfig<T> extends ServiceConfigBase<T> {
                             registryURL = registryURL.addParameter(PROXY_KEY, proxy);
                         }
 
-                        /* vergilyn-comment, 2020-03-13 >>>> 重要，dubbo的核心模型 Invoker
-                         *   1. dubbo默认的 proxy_factory 是javassist。
-                         *   2. 重要，构建 wrapper-invoker，对其调用 invoke时，它有可能是一个本地的实现，也可能是一个远程的实现，也可能一个集群实现。
+                        /** vergilyn-comment, 2020-04-14 >>>> IMPORTANT，dubbo的核心模型 Invoker
+                         * EX. {@link org.apache.dubbo.rpc.proxy.javassist.JavassistProxyFactory#getInvoker(Object, Class, URL)}
                          */
-                        //
                         Invoker<?> invoker = PROXY_FACTORY.getInvoker(ref, (Class) interfaceClass, registryURL.addParameterAndEncoded(EXPORT_KEY, url.toFullString()));
                         DelegateProviderMetaDataInvoker wrapperInvoker = new DelegateProviderMetaDataInvoker(invoker, this);
 
-                        /* vergilyn-comment, 2020-03-12 >>>> 导出服务，并添加exporters
-                         *   PROTOCOL 例如 {@link RegistryProtocol#export(...)}
-                         */
                         Exporter<?> exporter = PROTOCOL.export(wrapperInvoker);
                         exporters.add(exporter);
                     }

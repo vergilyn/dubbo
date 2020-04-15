@@ -49,7 +49,8 @@ public class DecodeHandler extends AbstractChannelHandlerDelegate {
         }
 
         /** vergilyn-comment, 2020-04-14 >>>>
-         * EX. handler -> {@link org.apache.dubbo.remoting.exchange.support.header.HeaderExchangeHandler#received(Channel, Object)}
+         * EX.
+         *   [provider & consumer]handler -> {@link org.apache.dubbo.remoting.exchange.support.header.HeaderExchangeHandler#received(Channel, Object)}
          */
         handler.received(channel, message);
     }

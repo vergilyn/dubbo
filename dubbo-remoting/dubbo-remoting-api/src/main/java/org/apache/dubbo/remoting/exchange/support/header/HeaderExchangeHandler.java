@@ -170,6 +170,10 @@ public class HeaderExchangeHandler implements ChannelHandlerDelegate {
     @Override
     public void received(Channel channel, Object message) throws RemotingException {
         final ExchangeChannel exchangeChannel = HeaderExchangeChannel.getOrAddChannel(channel);
+        /** vergilyn-comment, 2020-04-14 >>>>
+         * EX.
+         *   [provider] handler -> {@link org.apache.dubbo.rpc.protocol.dubbo.DubboProtocol#requestHandler}
+         */
         if (message instanceof Request) {
             // handle request.
             Request request = (Request) message;
