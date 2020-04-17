@@ -50,6 +50,9 @@ public abstract class AbstractPeer implements Endpoint, ChannelHandler {
 
     @Override
     public void send(Object message) throws RemotingException {
+        /** vergilyn-comment, 2020-04-17 >>>>
+         * EX. provider(response result) -> {@link org.apache.dubbo.remoting.transport.netty4.NettyChannel#send(java.lang.Object, boolean)}
+         */
         send(message, url.getParameter(Constants.SENT_KEY, false));
     }
 

@@ -16,6 +16,19 @@
  */
 package org.apache.dubbo.config.context;
 
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.concurrent.Callable;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.stream.Collectors;
+
 import org.apache.dubbo.common.context.FrameworkExt;
 import org.apache.dubbo.common.context.LifecycleAdapter;
 import org.apache.dubbo.common.logger.Logger;
@@ -36,19 +49,6 @@ import org.apache.dubbo.config.RegistryConfig;
 import org.apache.dubbo.config.ServiceConfigBase;
 import org.apache.dubbo.config.SslConfig;
 import org.apache.dubbo.rpc.model.ApplicationModel;
-
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-import java.util.concurrent.Callable;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReadWriteLock;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
-import java.util.stream.Collectors;
 
 import static java.lang.Boolean.TRUE;
 import static java.util.Collections.emptyMap;
@@ -443,6 +443,13 @@ public class ConfigManager extends LifecycleAdapter implements FrameworkExt {
         });
     }
 
+    private static void checkDuplicate(AbstractConfig oldOne, AbstractConfig newOne) throws IllegalStateException {
+        if (oldOne != null && !oldOne.equals(newOne)) {
+            String configName = oldOne.getClass().getSimpleName();
+            logger.warn("Duplicate Config found for " + configName + ", you should use only one unique " + configName + " for one application.");
+        }
+    }
+
     private <V> V read(Callable<V> callable) {
         Lock readLock = lock.readLock();
         V value = null;
@@ -455,13 +462,6 @@ public class ConfigManager extends LifecycleAdapter implements FrameworkExt {
             readLock.unlock();
         }
         return value;
-    }
-
-    private static void checkDuplicate(AbstractConfig oldOne, AbstractConfig newOne) throws IllegalStateException {
-        if (oldOne != null && !oldOne.equals(newOne)) {
-            String configName = oldOne.getClass().getSimpleName();
-            logger.warn("Duplicate Config found for " + configName + ", you should use only one unique " + configName + " for one application.");
-        }
     }
 
     private static Map newMap() {

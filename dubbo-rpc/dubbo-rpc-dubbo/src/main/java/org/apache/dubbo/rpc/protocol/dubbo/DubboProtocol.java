@@ -49,6 +49,7 @@ import org.apache.dubbo.remoting.exchange.ExchangeHandler;
 import org.apache.dubbo.remoting.exchange.ExchangeServer;
 import org.apache.dubbo.remoting.exchange.Exchangers;
 import org.apache.dubbo.remoting.exchange.support.ExchangeHandlerAdapter;
+import org.apache.dubbo.remoting.exchange.support.header.HeaderExchangeHandler;
 import org.apache.dubbo.rpc.Exporter;
 import org.apache.dubbo.rpc.Invocation;
 import org.apache.dubbo.rpc.Invoker;
@@ -147,7 +148,15 @@ public class DubboProtocol extends AbstractProtocol {
             }
 
             RpcContext.getContext().setRemoteAddress(channel.getRemoteAddress());
+
+            /** vergilyn-comment, 2020-04-17 >>>>
+             * EX. {@link org.apache.dubbo.config.invoker.DelegateProviderMetaDataInvoker#invoke(org.apache.dubbo.rpc.Invocation)}
+             */
             Result result = invoker.invoke(inv);
+
+            /** vergilyn-comment, 2020-04-17 >>>>
+             * EX. provider 返回结果给consumer -> {@link HeaderExchangeHandler#handleRequest(org.apache.dubbo.remoting.exchange.ExchangeChannel, org.apache.dubbo.remoting.exchange.Request)}
+             */
             return result.thenApply(Function.identity());
         }
 

@@ -56,6 +56,9 @@ public class JavassistProxyFactory extends AbstractProxyFactory {
             protected Object doInvoke(T proxy, String methodName,
                                       Class<?>[] parameterTypes,
                                       Object[] arguments) throws Throwable {
+                /** vergilyn-comment, 2020-04-17 >>>>
+                 * EX. 就是 provider-side 执行调用 {@link com.vergilyn.examples.api.ProviderFirstApi#sayHello(java.lang.String)}
+                 */
                 return wrapper.invokeMethod(proxy, methodName, parameterTypes, arguments);
             }
         };

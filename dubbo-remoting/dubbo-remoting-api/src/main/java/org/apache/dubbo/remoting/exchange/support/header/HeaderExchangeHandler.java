@@ -97,7 +97,14 @@ public class HeaderExchangeHandler implements ChannelHandlerDelegate {
         // find handler by message class.
         Object msg = req.getData();
         try {
+            /** vergilyn-comment, 2020-04-17 >>>>
+             * EX. see: {@link org.apache.dubbo.rpc.protocol.dubbo.DubboProtocol#requestHandler)}
+             */
             CompletionStage<Object> future = handler.reply(channel, msg);
+
+            /** vergilyn-comment, 2020-04-17 >>>>
+             * EX. provider response consumer-request result
+             */
             future.whenComplete((appResult, t) -> {
                 try {
                     if (t == null) {
@@ -107,6 +114,10 @@ public class HeaderExchangeHandler implements ChannelHandlerDelegate {
                         res.setStatus(Response.SERVICE_ERROR);
                         res.setErrorMessage(StringUtils.toString(t));
                     }
+
+                    /** vergilyn-comment, 2020-04-17 >>>>
+                     * EX. channel -> {@link org.apache.dubbo.remoting.transport.netty4.NettyChannel#send(Object)}
+                     */
                     channel.send(res);
                 } catch (RemotingException e) {
                     logger.warn("Send result to consumer failed, channel is " + channel + ", msg is " + e);
@@ -181,7 +192,7 @@ public class HeaderExchangeHandler implements ChannelHandlerDelegate {
                 handlerEvent(channel, request);
             } else {
                 if (request.isTwoWay()) {
-                    handleRequest(exchangeChannel, request);
+                    handleRequest(exchangeChannel, request);  // IMPORTANT!
                 } else {
                     handler.received(exchangeChannel, request.getData());
                 }

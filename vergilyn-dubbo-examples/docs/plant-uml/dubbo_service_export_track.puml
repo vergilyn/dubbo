@@ -8,13 +8,36 @@ skinparam activity{
 title service-provider track
 
 (*)  --> "DubboBootstrap#start()"
---> "DubboBootstrap#exportServices()"
+--> "DubboBootstrap#exportServices()" AS Services
 --> "ServiceConfig#export()"
 --> "ServiceConfig#doExportUrlsFor1Protocol(ProtocolConfig protocolConfig, List<URL> registryURLs)" AS ServiceConfig << important   >>
 
+Services .[#Indigo].>[ services, Collection<ServiceConfigBase> ] "<color:#808000>@PostConstruct \nServiceBean#addIntoConfigManager()"
+
+ServiceConfig --> "protected T ref;\n <color:green>The reference of the interface implementation" AS ServiceConfig.ref
+
 ServiceConfig ..>[ <color:red>invoker] "invoker" AS ServiceConfig.invoker << important >>
 -->[ JavassistProxyFactory#getInvoker(T proxy, Class<T> type, URL url)] "**anonymous-class**, <color:purple>new</color> AbstractProxyInvoker<T>()" AS AbstractProxyInvoker
--->[ wrapper] "1"
+-->[ wrapper] "Wrapper.class"
+--> "<color:purple>new</color> DelegateProviderMetaDataInvoker \n(Invoker<T> invoker,ServiceConfig<?> metadata)" AS DelegateProviderMetaDataInvoker
+DelegateProviderMetaDataInvoker -->[ invoker] "invoker" AS DelegateProviderMetaDataInvoker.invoker
+DelegateProviderMetaDataInvoker.invoker .[#green].> ServiceConfig.invoker
+DelegateProviderMetaDataInvoker -->[ metadata] "metadata" AS DelegateProviderMetaDataInvoker.metadata
+DelegateProviderMetaDataInvoker.metadata .[#green].> ServiceConfig
+
+ServiceConfig.ref .[#Indigo].>[ ref] "ServiceAnnotationBeanPostProcessor#postProcessBeanDefinitionRegistry()"
+-->[ org.apache.dubbo.config.annotation.Service \ncom.alibaba.dubbo.config.annotation.Service] "ServiceAnnotationBeanPostProcessor#registerServiceBeans()"
+-->[ registerServiceBean] "ServiceAnnotationBeanPostProcessor#buildServiceBeanDefinition()"  <<important>>
+note bottom #FFFFE0
+build spring `AbstractBeanDefinition.class`
+```
+BeanDefinitionBuilder builder =
+    rootBeanDefinition(org.apache.dubbo.config.spring.ServiceBean.class);
+
+String resolvedBeanName = environment.resolvePlaceholders(beanName);
+builder.addPropertyReference(propertyName: "ref", resolvedBeanName);
+```
+endnote
 
 ServiceConfig --> "DubboProtocol#export(Invoker<T> invoker)"
 --> "DubboProtocol#createServer(URL url)" AS DubboProtocol.createServer << important >>
@@ -54,5 +77,9 @@ NettyChannel --> "NettyChannel.handler" AS NettyChannel.handler
 NettyChannel.handler -[#green]-> NettyServerHandler.handler
 
 CoreHandler -->[ message instanceof Request.class] "HeaderExchangeHandler#received(Channel channel, Object message)"
--->[ <color:BLUE>msg instanceof RpcInvocation.class\n] "DubboProtocol.requestHandler#reply(ExchangeChannel channel, Object message)"
+-->[ <color:BLUE>msg instanceof RpcInvocation.class\n] "DubboProtocol.requestHandler#reply(ExchangeChannel channel, Object message)" AS DubboProtocol.reply
+
+DubboProtocol.reply -->[ invoker] "invoker" AS DubboProtocol.reply.invoker
+DubboProtocol.reply.invoker .[#green].> DelegateProviderMetaDataInvoker
+
 @enduml

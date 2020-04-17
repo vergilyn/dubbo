@@ -22,6 +22,7 @@ import org.apache.dubbo.rpc.Invocation;
 import org.apache.dubbo.rpc.Invoker;
 import org.apache.dubbo.rpc.Result;
 import org.apache.dubbo.rpc.RpcException;
+import org.apache.dubbo.rpc.proxy.javassist.JavassistProxyFactory;
 
 /**
  *
@@ -53,6 +54,9 @@ public class DelegateProviderMetaDataInvoker<T> implements Invoker {
 
     @Override
     public Result invoke(Invocation invocation) throws RpcException {
+        /** vergilyn-comment, 2020-04-17 >>>>
+         * EX. {@link JavassistProxyFactory#getInvoker(java.lang.Object, java.lang.Class, org.apache.dubbo.common.URL)}
+         */
         return invoker.invoke(invocation);
     }
 
