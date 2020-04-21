@@ -16,6 +16,8 @@
  */
 package org.apache.dubbo.rpc.cluster.support.wrapper;
 
+import java.util.List;
+
 import org.apache.dubbo.common.URL;
 import org.apache.dubbo.common.extension.ExtensionLoader;
 import org.apache.dubbo.rpc.Invocation;
@@ -27,8 +29,6 @@ import org.apache.dubbo.rpc.cluster.Directory;
 import org.apache.dubbo.rpc.cluster.LoadBalance;
 import org.apache.dubbo.rpc.cluster.interceptor.ClusterInterceptor;
 import org.apache.dubbo.rpc.cluster.support.AbstractClusterInvoker;
-
-import java.util.List;
 
 import static org.apache.dubbo.common.constants.CommonConstants.REFERENCE_INTERCEPTOR_KEY;
 
@@ -89,6 +89,10 @@ public abstract class AbstractCluster implements Cluster {
             Result asyncResult;
             try {
                 interceptor.before(next, invocation);
+                /** vergilyn-comment, 2020-04-20 >>>>
+                 * EX.
+                 *   consumer -> {@link org.apache.dubbo.rpc.cluster.interceptor.ConsumerContextClusterInterceptor#intercept(org.apache.dubbo.rpc.cluster.support.AbstractClusterInvoker, org.apache.dubbo.rpc.Invocation)}
+                 */
                 asyncResult = interceptor.intercept(next, invocation);
             } catch (Exception e) {
                 // onError callback

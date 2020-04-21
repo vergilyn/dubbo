@@ -42,6 +42,7 @@ import org.apache.dubbo.config.utils.ConfigValidationUtils;
 import org.apache.dubbo.event.Event;
 import org.apache.dubbo.event.EventDispatcher;
 import org.apache.dubbo.metadata.WritableMetadataService;
+import org.apache.dubbo.registry.integration.RegistryProtocol;
 import org.apache.dubbo.rpc.Invoker;
 import org.apache.dubbo.rpc.Protocol;
 import org.apache.dubbo.rpc.ProxyFactory;
@@ -54,6 +55,8 @@ import org.apache.dubbo.rpc.model.AsyncMethodInfo;
 import org.apache.dubbo.rpc.model.ConsumerModel;
 import org.apache.dubbo.rpc.model.ServiceDescriptor;
 import org.apache.dubbo.rpc.model.ServiceRepository;
+import org.apache.dubbo.rpc.protocol.ProtocolFilterWrapper;
+import org.apache.dubbo.rpc.protocol.ProtocolListenerWrapper;
 import org.apache.dubbo.rpc.protocol.injvm.InjvmProtocol;
 import org.apache.dubbo.rpc.service.GenericService;
 import org.apache.dubbo.rpc.support.ProtocolUtils;
@@ -340,9 +343,38 @@ public class ReferenceConfig<T> extends ReferenceConfigBase<T> {
             // vergilyn-comment, 2020-03-19 >>>> 获取 invoker 是相当重要的方法！！！
             // 单个注册中心或服务提供者(服务直连，下同)
             if (urls.size() == 1) {
-                /* vergilyn-comment, 2020-03-20 >>>> REF_PROTOCOL -> RegistryProtocol、DubboProtocol
+                /**
+                 * urls -> 特别：url protocol 是 Registry，而不是 Dubbo！
+                 * EX. consumer, @Reference(timeout = 1000, retries = 0), {@link com.vergilyn.examples.api.ProviderFirstApi}
+                 * registry://localhost:8848/org.apache.dubbo.registry.RegistryService
+                 *  ?application=dubbo-consumer-application
+                 *  &registry=nacos
+                 *  &register.ip=127.0.0.1
+                 *  &namespace=f349ebf8-6dea-4d49-836e-c0edd4ab6f42
+                 *  &refer=application=dubbo-consumer-application
+                 *  &check=false
+                 *  &init=false
+                 *  &side=consumer
+                 *  &retries=0
+                 *  &timeout=1000
+                 *  &interface=com.vergilyn.examples.api.ProviderFirstApi
+                 *  &methods=sayHello,sayGoodbye
+                 *  &dubbo=2.0.2&version=1.0.0&revision=1.0.0&release=2.7.6.RELEASE&release=2.7.6.RELEASE
+                 *  &pid=2336&sticky=false&logger=log4j2&timestamp=1587435315851&timestamp=1587435315923
+                 *
+                 * vergilyn-comment, 2020-03-20 >>>> REF_PROTOCOL -> RegistryProtocol、DubboProtocol
                  *   consumer-side, 针对不同的 ip:port 会创建对应数量的 Netty.Bootstrap，并立即 connect （3次握手完成。）
                  *   如果是 lazy，则 Bootstrap & connect 都延迟到第一次请求时再执行！
+                 *
+                 * vergilyn-comment, 2020-04-21 >>>>
+                 *   REF_PROTOCOL 经过dubbo-spi被多次包装
+                 *   EX. consumer的整个调用栈
+                 *   <pre>
+                 *      REF_PROTOCOL, registry -> {@link ProtocolListenerWrapper#refer(java.lang.Class, org.apache.dubbo.common.URL)}
+                 *        -- ProtocolListenerWrapper.protocol -> {@link ProtocolFilterWrapper#refer(java.lang.Class, org.apache.dubbo.common.URL)}
+                 *        -- ProtocolFilterWrapper.protocol -> {@link RegistryProtocol#refer(java.lang.Class, org.apache.dubbo.common.URL)}
+                 *   </pre>
+                 *
                  */
 
                 invoker = REF_PROTOCOL.refer(interfaceClass, urls.get(0));

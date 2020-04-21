@@ -17,11 +17,11 @@
 package org.apache.dubbo.common.compiler.support;
 
 
-import javassist.CtClass;
-
 import java.util.Arrays;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import javassist.CtClass;
 
 /**
  * JavassistCompiler. (SPI, Singleton, ThreadSafe)
@@ -79,6 +79,10 @@ public class JavassistCompiler extends AbstractCompiler {
         // compile
         ClassLoader classLoader = org.apache.dubbo.common.utils.ClassUtils.getCallerClassLoader(getClass());
         CtClass cls = builder.build(classLoader);
+        /**
+         * vergilyn-comment, 2020-04-21 >>>>
+         * EX. {@link org.apache.dubbo.rpc.Protocol$Adaptive}
+         */
         return cls.toClass(classLoader, JavassistCompiler.class.getProtectionDomain());
     }
 

@@ -42,6 +42,10 @@ public class AdaptiveCompiler implements Compiler {
         } else {
             compiler = loader.getDefaultExtension();
         }
+        /**
+         * vergilyn-comment, 2020-04-21 >>>>
+         *   EX. {@link JavassistCompiler#compile(String code, ClassLoader classLoader)}
+         */
         return compiler.compile(code, classLoader);
     }
 

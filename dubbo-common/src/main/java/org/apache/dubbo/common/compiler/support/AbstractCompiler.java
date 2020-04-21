@@ -16,10 +16,10 @@
  */
 package org.apache.dubbo.common.compiler.support;
 
-import org.apache.dubbo.common.compiler.Compiler;
-
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import org.apache.dubbo.common.compiler.Compiler;
 
 /**
  * Abstract compiler. (SPI, Prototype, ThreadSafe)
@@ -49,12 +49,22 @@ public abstract class AbstractCompiler implements Compiler {
         }
         String className = pkg != null && pkg.length() > 0 ? pkg + "." + cls : cls;
         try {
+            /**
+             * vergilyn-comment, 2020-04-21 >>>>
+             * EX. generate class see -> {@link org.apache.dubbo.rpc.Protocol$Adaptive}
+             *   但是，运行时会报 `ClassNotFoundException`，进而调用 {@link JavassistCompiler#doCompile(String, String)}
+             *
+             */
             return Class.forName(className, true, org.apache.dubbo.common.utils.ClassUtils.getCallerClassLoader(getClass()));
         } catch (ClassNotFoundException e) {
             if (!code.endsWith("}")) {
                 throw new IllegalStateException("The java code not endsWith \"}\", code: \n" + code + "\n");
             }
             try {
+                /**
+                 * vergilyn-comment, 2020-04-21 >>>>
+                 * EX. {@link JavassistCompiler#doCompile(String, String)}
+                 */
                 return doCompile(className, code);
             } catch (RuntimeException t) {
                 throw t;

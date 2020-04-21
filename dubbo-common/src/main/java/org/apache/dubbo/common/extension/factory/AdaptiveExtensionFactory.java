@@ -16,13 +16,13 @@
  */
 package org.apache.dubbo.common.extension.factory;
 
-import org.apache.dubbo.common.extension.Adaptive;
-import org.apache.dubbo.common.extension.ExtensionFactory;
-import org.apache.dubbo.common.extension.ExtensionLoader;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+
+import org.apache.dubbo.common.extension.Adaptive;
+import org.apache.dubbo.common.extension.ExtensionFactory;
+import org.apache.dubbo.common.extension.ExtensionLoader;
 
 /**
  * AdaptiveExtensionFactory
@@ -30,6 +30,10 @@ import java.util.List;
 @Adaptive
 public class AdaptiveExtensionFactory implements ExtensionFactory {
 
+    /**
+     * vergilyn-comment, 2020-04-21 >>>>
+     * [{@linkplain SpiExtensionFactory}, {@linkplain org.apache.dubbo.config.spring.extension.SpringExtensionFactory SpringExtensionFactory}]
+     */
     private final List<ExtensionFactory> factories;
 
     public AdaptiveExtensionFactory() {

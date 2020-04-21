@@ -127,10 +127,6 @@ public class RegistryProtocol implements Protocol {
     //providerurl <--> exporter
     private final ConcurrentMap<String, ExporterChangeableWrapper<?>> bounds = new ConcurrentHashMap<>();
     private Cluster cluster;
-    /**
-     * vergilyn-question, 2020-03-13 >>>>
-     *   `dubbo.registry.protocol` or `dubbo.protocol.name`?
-     */
     private Protocol protocol;
     private RegistryFactory registryFactory;
     private ProxyFactory proxyFactory;
@@ -347,6 +343,12 @@ public class RegistryProtocol implements Protocol {
         return registryUrl;
     }
 
+    /**
+     * 从 url 参数中中获取 `registry`(默认值: dubbo)，并移除该参数。
+     * 将 url protocol 设置成获取到的值并返回
+     * @param url
+     * @return "aaa://127.0.0.0?registry=bbb" -> "bbb://127.0.0.1?..."
+     */
     protected URL getRegistryUrl(URL url) {
         return URLBuilder.from(url)
                 .setProtocol(url.getParameter(REGISTRY_KEY, DEFAULT_REGISTRY))
@@ -419,8 +421,17 @@ public class RegistryProtocol implements Protocol {
     @Override
     @SuppressWarnings("unchecked")
     public <T> Invoker<T> refer(Class<T> type, URL url) throws RpcException {
+        /** vergilyn-comment, 2020-04-21 >>>>
+         * EX. "registry://127.0.0.1:8848...?registry=nacos" -> "nacos://127.0.0.1:8848..."
+         */
         url = getRegistryUrl(url);
+
+        /** vergilyn-comment, 2020-04-21 >>>>
+         * EX. registryFactory -> {@linkplain org.apache.dubbo.registry.RegistryFactory$Adaptive#getRegistry(org.apache.dubbo.common.URL)}
+         *      -url[protocol="nacos"]-> {@linkplain org.apache.dubbo.registry.nacos.NacosRegistryFactory}
+         */
         Registry registry = registryFactory.getRegistry(url);
+
         if (RegistryService.class.equals(type)) {
             return proxyFactory.getInvoker((T) registry, type, url);
         }
@@ -449,11 +460,18 @@ public class RegistryProtocol implements Protocol {
         URL subscribeUrl = new URL(CONSUMER_PROTOCOL, parameters.remove(REGISTER_IP_KEY), 0, type.getName(), parameters);
         if (directory.isShouldRegister()) {
             directory.setRegisteredConsumerUrl(subscribeUrl);
+
+            /**
+             * vergilyn-comment, 2020-04-21 >>>>
+             *  EX. {@link org.apache.dubbo.registry.ListenerRegistryWrapper#register(URL)}
+             */
             registry.register(directory.getRegisteredConsumerUrl());
         }
         directory.buildRouterChain(subscribeUrl);
 
-        // vergilyn-comment, 2020-03-19 >>>> 重要代码
+        /** vergilyn-comment, 2020-04-21 >>>> IMPORTANT
+         *   consumer-side subscribe service
+         */
         directory.subscribe(toSubscribeUrl(subscribeUrl));
 
         Invoker<T> invoker = cluster.join(directory);

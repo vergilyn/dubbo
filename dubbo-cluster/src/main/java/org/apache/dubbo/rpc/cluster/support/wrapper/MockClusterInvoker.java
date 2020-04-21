@@ -16,6 +16,8 @@
  */
 package org.apache.dubbo.rpc.cluster.support.wrapper;
 
+import java.util.List;
+
 import org.apache.dubbo.common.URL;
 import org.apache.dubbo.common.logger.Logger;
 import org.apache.dubbo.common.logger.LoggerFactory;
@@ -29,8 +31,6 @@ import org.apache.dubbo.rpc.RpcException;
 import org.apache.dubbo.rpc.RpcInvocation;
 import org.apache.dubbo.rpc.cluster.Directory;
 import org.apache.dubbo.rpc.support.MockInvoker;
-
-import java.util.List;
 
 import static org.apache.dubbo.rpc.Constants.MOCK_KEY;
 import static org.apache.dubbo.rpc.cluster.Constants.INVOCATION_NEED_MOCK;
@@ -79,6 +79,10 @@ public class MockClusterInvoker<T> implements Invoker<T> {
         String value = getUrl().getMethodParameter(invocation.getMethodName(), MOCK_KEY, Boolean.FALSE.toString()).trim();
         if (value.length() == 0 || "false".equalsIgnoreCase(value)) {
             //no mock
+            /** vergilyn-comment, 2020-04-20 >>>>
+             * EX.
+             *   consumer -> {@link AbstractCluster.InterceptorInvokerNode#invoke(org.apache.dubbo.rpc.Invocation)}
+             */
             result = this.invoker.invoke(invocation);
         } else if (value.startsWith("force")) {
             if (logger.isWarnEnabled()) {

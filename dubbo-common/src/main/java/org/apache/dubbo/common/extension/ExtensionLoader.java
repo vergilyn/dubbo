@@ -99,6 +99,10 @@ public class ExtensionLoader<T> {
 
     private final Class<?> type;
 
+    /**
+     * vergilyn-comment, 2020-04-21 >>>>
+     *   default -> {@linkplain org.apache.dubbo.common.extension.factory.AdaptiveExtensionFactory AdaptiveExtensionFactory}
+     */
     private final ExtensionFactory objectFactory;
 
     private final ConcurrentMap<Class<?>, String> cachedNames = new ConcurrentHashMap<>();
@@ -112,6 +116,11 @@ public class ExtensionLoader<T> {
     private String cachedDefaultName;
     private volatile Throwable createAdaptiveInstanceError;
 
+    /**
+     * vergilyn-comment, 2020-04-21 >>>>
+     * [{@linkplain org.apache.dubbo.rpc.protocol.ProtocolFilterWrapper ProtocolFilterWrapper}
+     *  , {@linkplain org.apache.dubbo.rpc.protocol.ProtocolListenerWrapper ProtocolListenerWrapper}]
+     */
     private Set<Class<?>> cachedWrapperClasses;
 
     private Map<String, IllegalStateException> exceptions = new ConcurrentHashMap<>();
@@ -658,6 +667,9 @@ public class ExtensionLoader<T> {
                     continue;
                 }
 
+                /** vergilyn-comment, 2020-04-21 >>>>
+                 * 调用 instance 的 setXxxx 进行赋值
+                 */
                 try {
                     String property = getSetterProperty(method);
                     Object object = objectFactory.getExtension(pt, property);
@@ -999,6 +1011,10 @@ public class ExtensionLoader<T> {
         String code = new AdaptiveClassCodeGenerator(type, cachedDefaultName).generate();
         ClassLoader classLoader = findClassLoader();
         org.apache.dubbo.common.compiler.Compiler compiler = ExtensionLoader.getExtensionLoader(org.apache.dubbo.common.compiler.Compiler.class).getAdaptiveExtension();
+
+        /** vergilyn-comment, 2020-04-21 >>>>
+         * EX. {@linkplain org.apache.dubbo.common.compiler.support.JavassistCompiler#compile(String, ClassLoader)}
+         */
         return compiler.compile(code, classLoader);
     }
 

@@ -418,3 +418,98 @@ public abstract class AbstractClient extends AbstractEndpoint implements Client 
     }
 }
 ```
+
+#### 2.1.4 ""
+
++ [issues#6004, "first call time consumption too long"](https://github.com/apache/dubbo/issues/6004)
+
+例如`vergilyn-consumer-examples`，当`vergilyn-provider-examples`启动成功后（成功注册服务到nacos），再启动consumer，第一次调用会出现timeout：  
+```
+Error starting ApplicationContext. To display the conditions report re-run your application with 'debug' enabled.
+2020-04-20 17:05:25.990  WARN 17980 --- [:20880-thread-1] o.a.d.r.exchange.support.DefaultFuture   :  [DUBBO] The timeout response finally returned at 2020-04-20 17:05:25.990, 
+response Response [id=0, version=null, status=20, event=false, error=null, result=AppResponse [value=[dubbo-provider-application][ProviderFirstApiImpl] >>>>>>>> Hello, vergilyn, exception=null]], channel: /127.0.0.1:54284 -> /127.0.0.1:20880, dubbo version: 2.7.6.RELEASE, current host: 127.0.0.1
+
+2020-04-20 17:05:26.388 ERROR 17980 --- [           main] o.s.boot.SpringApplication               : Application run failed
+
+java.lang.IllegalStateException: Failed to execute CommandLineRunner
+	at org.springframework.boot.SpringApplication.callRunner(SpringApplication.java:787) ~[spring-boot-2.2.2.RELEASE.jar:2.2.2.RELEASE]
+	at org.springframework.boot.SpringApplication.callRunners(SpringApplication.java:768) ~[spring-boot-2.2.2.RELEASE.jar:2.2.2.RELEASE]
+	at org.springframework.boot.SpringApplication.run(SpringApplication.java:322) ~[spring-boot-2.2.2.RELEASE.jar:2.2.2.RELEASE]
+	at com.vergilyn.examples.ConsumerExamplesApplication.main(ConsumerExamplesApplication.java:28) [classes/:na]
+
+Caused by: org.apache.dubbo.rpc.RpcException: Failed to invoke the method sayHello in the service com.vergilyn.examples.api.ProviderFirstApi. 
+  Tried 1 times of the providers [127.0.0.1:20880] (1/1) from the registry localhost:8848 on the consumer 127.0.0.1 using the dubbo version 2.7.6.RELEASE. 
+  Last error is: Invoke remote method timeout. method: sayHello, 
+  provider: dubbo://127.0.0.1:20880/com.vergilyn.examples.api.ProviderFirstApi
+  ?anyhost=true&application=dubbo-consumer-application&category=providers
+  &check=false&deprecated=false&dubbo=2.0.2&dynamic=true&generic=false&init=false
+  &interface=com.vergilyn.examples.api.ProviderFirstApi&logger=log4j2&methods=sayHello,sayGoodbye
+  &path=com.vergilyn.examples.api.ProviderFirstApi&pid=17980&protocol=dubbo
+  &register.ip=127.0.0.1&release=2.7.6.RELEASE&remote.application=dubbo-provider-application&retries=0
+  &revision=1.0.0&side=consumer&sticky=false&timeout=1000&timestamp=1587372208069&version=1.0.0, 
+cause: org.apache.dubbo.remoting.TimeoutException: Waiting server-side response timeout by scan timer. start time: 2020-04-20 17:05:24.874, end time: 2020-04-20 17:05:25.898, 
+  client elapsed: 96 ms, server elapsed: 927 ms, timeout: 1000 ms, 
+  request: Request [id=0, version=2.0.2, twoway=true, event=false, broken=false, data=null], channel: /127.0.0.1:54284 -> /127.0.0.1:20880
+	at org.apache.dubbo.rpc.cluster.support.FailoverClusterInvoker.doInvoke(FailoverClusterInvoker.java:113) ~[classes/:na]
+	at org.apache.dubbo.rpc.cluster.support.AbstractClusterInvoker.invoke(AbstractClusterInvoker.java:264) ~[classes/:na]
+	at org.apache.dubbo.rpc.cluster.interceptor.ClusterInterceptor.intercept(ClusterInterceptor.java:51) ~[classes/:na]
+	at org.apache.dubbo.rpc.cluster.support.wrapper.AbstractCluster$InterceptorInvokerNode.invoke(AbstractCluster.java:96) ~[classes/:na]
+	at org.apache.dubbo.rpc.cluster.support.wrapper.MockClusterInvoker.invoke(MockClusterInvoker.java:86) ~[classes/:na]
+	at org.apache.dubbo.rpc.proxy.InvokerInvocationHandler.invoke(InvokerInvocationHandler.java:96) ~[classes/:na]
+	at org.apache.dubbo.common.bytecode.proxy0.sayHello(proxy0.java) ~[classes/:na]
+	at com.vergilyn.examples.ConsumerExamplesApplication.run(ConsumerExamplesApplication.java:33) [classes/:na]
+	at org.springframework.boot.SpringApplication.callRunner(SpringApplication.java:784) ~[spring-boot-2.2.2.RELEASE.jar:2.2.2.RELEASE]
+	... 3 common frames omitted
+
+Caused by: java.util.concurrent.ExecutionException: org.apache.dubbo.remoting.TimeoutException: 
+  Waiting server-side response timeout by scan timer. start time: 2020-04-20 17:05:24.874, end time: 2020-04-20 17:05:25.898, 
+  client elapsed: 96 ms, server elapsed: 927 ms, timeout: 1000 ms, 
+  request: Request [id=0, version=2.0.2, twoway=true, event=false, broken=false, data=null], channel: /127.0.0.1:54284 -> /127.0.0.1:20880
+	at java.util.concurrent.CompletableFuture.reportGet(CompletableFuture.java:357) ~[na:1.8.0_171]
+	at java.util.concurrent.CompletableFuture.get(CompletableFuture.java:1915) ~[na:1.8.0_171]
+	at org.apache.dubbo.rpc.AsyncRpcResult.get(AsyncRpcResult.java:181) ~[classes/:na]
+	at org.apache.dubbo.rpc.protocol.AsyncToSyncInvoker.invoke(AsyncToSyncInvoker.java:79) ~[classes/:na]
+	at org.apache.dubbo.monitor.support.MonitorFilter.invoke(MonitorFilter.java:89) ~[classes/:na]
+	at org.apache.dubbo.rpc.protocol.ProtocolFilterWrapper$1.invoke(ProtocolFilterWrapper.java:81) ~[classes/:na]
+	at org.apache.dubbo.rpc.protocol.dubbo.filter.FutureFilter.invoke(FutureFilter.java:51) ~[classes/:na]
+	at org.apache.dubbo.rpc.protocol.ProtocolFilterWrapper$1.invoke(ProtocolFilterWrapper.java:81) ~[classes/:na]
+	at org.apache.dubbo.rpc.filter.ConsumerContextFilter.invoke(ConsumerContextFilter.java:55) ~[classes/:na]
+	at org.apache.dubbo.rpc.protocol.ProtocolFilterWrapper$1.invoke(ProtocolFilterWrapper.java:81) ~[classes/:na]
+	at org.apache.dubbo.rpc.listener.ListenerInvokerWrapper.invoke(ListenerInvokerWrapper.java:78) ~[classes/:na]
+	at org.apache.dubbo.rpc.protocol.InvokerWrapper.invoke(InvokerWrapper.java:56) ~[classes/:na]
+	at org.apache.dubbo.rpc.cluster.support.FailoverClusterInvoker.doInvoke(FailoverClusterInvoker.java:82) ~[classes/:na]
+	... 11 common frames omitted
+
+Caused by: org.apache.dubbo.remoting.TimeoutException: 
+  Waiting server-side response timeout by scan timer. start time: 2020-04-20 17:05:24.874, end time: 2020-04-20 17:05:25.898, 
+  client elapsed: 96 ms, server elapsed: 927 ms, timeout: 1000 ms, 
+  request: Request [id=0, version=2.0.2, twoway=true, event=false, broken=false, data=null], channel: /127.0.0.1:54284 -> /127.0.0.1:20880
+	at org.apache.dubbo.remoting.exchange.support.DefaultFuture.doReceived(DefaultFuture.java:223) ~[classes/:na]
+	at org.apache.dubbo.remoting.exchange.support.DefaultFuture.received(DefaultFuture.java:188) ~[classes/:na]
+	at org.apache.dubbo.remoting.exchange.support.DefaultFuture$TimeoutCheckTask.notifyTimeout(DefaultFuture.java:311) ~[classes/:na]
+	at org.apache.dubbo.remoting.exchange.support.DefaultFuture$TimeoutCheckTask.lambda$run$0(DefaultFuture.java:298) ~[classes/:na]
+	at org.apache.dubbo.common.threadpool.ThreadlessExecutor.waitAndDrain(ThreadlessExecutor.java:93) ~[classes/:na]
+	at org.apache.dubbo.rpc.AsyncRpcResult.get(AsyncRpcResult.java:179) ~[classes/:na]
+	... 21 common frames omitted
+```
+
+
+2020-04-21 >>>>
+1. **org.apache.dubbo.config.ReferenceConfig.REF_PROTOCOL** 的实例对象 到底是什么，及其由来？
+  之前以为是`DubboProtocol`其实不是，根据javadocs和debug，也是包装了多层
+```
+REF_PROTOCOL, registry -> {@link ProtocolListenerWrapper#refer(java.lang.Class, org.apache.dubbo.common.URL)}
+    -- ProtocolListenerWrapper.protocol -> {@link ProtocolFilterWrapper#refer(java.lang.Class, org.apache.dubbo.common.URL)}
+    -- ProtocolFilterWrapper.protocol -> {@link RegistryProtocol#refer(java.lang.Class, org.apache.dubbo.common.URL)}
+```
+
+2. org.apache.dubbo.registry.integration.RegistryProtocol 什么时候被实例化？
+-
+
+3. RegistryProtocol 中部分成员变量的实例对象是？
+`RegistryProtocol#refer()`:  
+- registryFactory.getRegistry(url) -registry?-> registry.registry(url) ?
+- cluster, org.apache.dubbo.rpc.cluster.Cluster 
+- protocol, org.apache.dubbo.rpc.Protocol
+- registryFactory, org.apache.dubbo.registry.RegistryFactory
+- proxyFactory, org.apache.dubbo.rpc.ProxyFactory

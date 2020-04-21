@@ -1,0 +1,51 @@
+@startuml
+skinparam DefaultFontSize 18
+
+skinparam activity{
+  BackgroundColor<< important >> LightSkyBlue
+}
+
+title REF_PROTOCOL = ExtensionLoader.getExtensionLoader(Protocol.class)\n.getAdaptiveExtension();
+(*)  --> "ReferenceConfig.REF_PROTOCOL"
+note right
+The Protocol implementation with adaptive functionality,it will be different in different scenarios.
+A particular Protocol implementation is determined by the protocol attribute in the URL.
+For example:
+1. when the url is registry://224.5.6.7:1234/org.apache.dubbo.registry.RegistryService?application=dubbo-sample,
+    then the protocol is <color:#36648B>**RegistryProtocol**</color>
+
+2. when the url is dubbo://224.5.6.7:1234/org.apache.dubbo.config.api.DemoService?application=dubbo-sample,
+    then the protocol is <color:#36648B>**DubboProtocol**</color>
+
+Actually,when the ExtensionLoader init the Protocol instants,it will automatically wraps two layers,
+and eventually will get a <color:#36648B>**ProtocolFilterWrapper**</color> or <color:#36648B>**ProtocolListenerWrapper**</color>
+endnote
+
+--> "ExtensionLoader#getExtensionLoader(Protocol.class)"
+--> "<color:purple>new</color> ExtensionLoader(Class<?> type)" AS ExtensionLoader
+ExtensionLoader .[#purple].>[ property] " objectFactory -> AdaptiveExtensionFactory.class" AS ExtensionLoader.objectFactory <<important>>
+
+ExtensionLoader .[#purple].>[ property] " type = Protocol.class" AS ExtensionLoader.type
+
+ExtensionLoader -->[ #getAdaptiveExtension() \n↓\n #getAdaptiveExtensionClass() \n↓\n #createAdaptiveExtensionClass()] "
+<color:purple>new</color> RegistryProtocol()" AS RegistryProtocol
+note left
+ExtensionLoader 创建了对应spi的实例后，会调用<color:red>`ExtensionLoader#injectExtension(T instance)`</color>。
+然后调用
+endnote
+
+RegistryProtocol ..> "cluster -> Cluster$Adaptive.class" AS RegistryProtocol.cluster
+RegistryProtocol ..> "protocol -> Protocol$Adaptive" AS RegistryProtocol.protocol
+RegistryProtocol ..> "registryFactory -> RegistryFactory$Adaptive" AS RegistryProtocol.registryFactory
+RegistryProtocol ..> "proxyFactory -> ProxyFactory$Adaptive" AS RegistryProtocol.proxyFactory
+
+RegistryProtocol -->[ wrapper] "wrapper"
+note right
+instance = new RegistryProtocol();
+instance = new ProtocolFilterWrapper(instance);
+instance = new ProtocolListenerWrapper(instance);
+
+return instance;
+endnote
+
+@enduml

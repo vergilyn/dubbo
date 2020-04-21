@@ -18,9 +18,9 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 @Slf4j
 public class ConsumerExamplesApplication implements CommandLineRunner {
 
-    @Reference(version = ApiConstants.SERVICE_VERSION, timeout = 500000, check = false)
+    @Reference(version = ApiConstants.SERVICE_VERSION, timeout = 1000, check = false, retries = 0)
     private ProviderFirstApi firstApi;
-    @Reference(version = ApiConstants.SERVICE_VERSION, timeout = 500000, check = true)
+    @Reference(version = ApiConstants.SERVICE_VERSION, timeout = 1000, check = true)
     private ProviderSecondApi secondApi;
 
     public static void main(String[] args) {

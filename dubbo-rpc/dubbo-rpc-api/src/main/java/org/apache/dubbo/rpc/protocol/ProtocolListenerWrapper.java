@@ -16,6 +16,9 @@
  */
 package org.apache.dubbo.rpc.protocol;
 
+import java.util.Collections;
+import java.util.List;
+
 import org.apache.dubbo.common.URL;
 import org.apache.dubbo.common.extension.ExtensionLoader;
 import org.apache.dubbo.common.utils.UrlUtils;
@@ -28,9 +31,6 @@ import org.apache.dubbo.rpc.ProtocolServer;
 import org.apache.dubbo.rpc.RpcException;
 import org.apache.dubbo.rpc.listener.ListenerExporterWrapper;
 import org.apache.dubbo.rpc.listener.ListenerInvokerWrapper;
-
-import java.util.Collections;
-import java.util.List;
 
 import static org.apache.dubbo.common.constants.CommonConstants.EXPORTER_LISTENER_KEY;
 import static org.apache.dubbo.common.constants.CommonConstants.INVOKER_LISTENER_KEY;
@@ -67,6 +67,10 @@ public class ProtocolListenerWrapper implements Protocol {
     @Override
     public <T> Invoker<T> refer(Class<T> type, URL url) throws RpcException {
         if (UrlUtils.isRegistry(url)) {
+            /** vergilyn-comment, 2020-04-21 >>>>
+             * EX. "registry://localhost:8848/org.apache.dubbo.registry.RegistryService?..."
+             *   -> {@link ProtocolFilterWrapper#refer(java.lang.Class, org.apache.dubbo.common.URL)}
+             */
             return protocol.refer(type, url);
         }
         return new ListenerInvokerWrapper<T>(protocol.refer(type, url),

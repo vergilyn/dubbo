@@ -44,6 +44,10 @@ public interface ClusterInterceptor {
      * @throws RpcException
      */
     default Result intercept(AbstractClusterInvoker<?> clusterInvoker, Invocation invocation) throws RpcException {
+        /** vergilyn-comment, 2020-04-20 >>>>
+         * EX.
+         *   consumer -> {@link org.apache.dubbo.rpc.cluster.support.FailoverClusterInvoker#invoke(org.apache.dubbo.rpc.Invocation)}
+         */
         return clusterInvoker.invoke(invocation);
     }
 

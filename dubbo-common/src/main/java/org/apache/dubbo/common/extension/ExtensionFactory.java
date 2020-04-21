@@ -16,10 +16,15 @@
  */
 package org.apache.dubbo.common.extension;
 
+import org.apache.dubbo.common.extension.factory.AdaptiveExtensionFactory;
+import org.apache.dubbo.common.extension.factory.SpiExtensionFactory;
+
 /**
  * ExtensionFactory
- * <p>vergilyn-comment, 2020-04-08 >>>> <br/>
- *   用于扩展 SPI Factory，例如 AdaptiveExtensionFactory, SpiExtensionFactory, SpringExtensionFactory
+ * <p>vergilyn-comment, 2020-04-08 >>>> 用于扩展 dubbo-SPI <br/>
+ *   <li>{@link AdaptiveExtensionFactory}, `@{@link Adaptive}`</li>
+ *   <li>{@link SpiExtensionFactory}</li>
+ *   <li>{@link org.apache.dubbo.config.spring.extension.SpringExtensionFactory}</li>
  * </p>
  */
 @SPI

@@ -89,7 +89,8 @@ public class InvokerInvocationHandler implements InvocationHandler {
 
         /** vergilyn-comment, 2020-04-13 >>>>
          * EX.
-         *   -> {@link org.apache.dubbo.rpc.protocol.AsyncToSyncInvoker#invoke(org.apache.dubbo.rpc.Invocation)}
+         *   consumer -> {@link org.apache.dubbo.rpc.protocol.AsyncToSyncInvoker#invoke(org.apache.dubbo.rpc.Invocation)}
+         *   consumer -> {@link org.apache.dubbo.rpc.cluster.support.wrapper.MockClusterInvoker#invoke(org.apache.dubbo.rpc.Invocation)}
          *   -> {@link AsyncRpcResult#recreate()}
          */
         return invoker.invoke(rpcInvocation).recreate();
