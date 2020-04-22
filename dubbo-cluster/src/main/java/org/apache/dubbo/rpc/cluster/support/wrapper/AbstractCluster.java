@@ -36,6 +36,12 @@ public abstract class AbstractCluster implements Cluster {
 
     private <T> Invoker<T> buildClusterInterceptors(AbstractClusterInvoker<T> clusterInvoker, String key) {
         AbstractClusterInvoker<T> last = clusterInvoker;
+
+        /** vergilyn-comment, 2020-04-22 >>>>
+         * EX.
+         *   interceptors -> [{@link org.apache.dubbo.rpc.cluster.interceptor.ConsumerContextClusterInterceptor}]
+         *   (ConsumerContextClusterInterceptor -> {@link org.apache.dubbo.common.extension.Adaptive})
+         */
         List<ClusterInterceptor> interceptors = ExtensionLoader.getExtensionLoader(ClusterInterceptor.class).getActivateExtension(clusterInvoker.getUrl(), key);
 
         if (!interceptors.isEmpty()) {
@@ -50,6 +56,12 @@ public abstract class AbstractCluster implements Cluster {
 
     @Override
     public <T> Invoker<T> join(Directory<T> directory) throws RpcException {
+        /**
+         * vergilyn-comment, 2020-04-22 >>>>
+         *   EX.
+         *     clusterInvoker, doJoin(directory) -> {@link org.apache.dubbo.rpc.cluster.support.FailoverCluster#doJoin(Directory)}
+         *     key, -> null
+         */
         return buildClusterInterceptors(doJoin(directory), directory.getUrl().getParameter(REFERENCE_INTERCEPTOR_KEY));
     }
 

@@ -18,7 +18,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 @Slf4j
 public class ConsumerExamplesApplication implements CommandLineRunner {
 
-    @Reference(version = ApiConstants.SERVICE_VERSION, timeout = 1000, check = false, retries = 0)
+    @Reference(version = ApiConstants.SERVICE_VERSION, timeout = 1000, check = false, retries = 1)
     private ProviderFirstApi firstApi;
     @Reference(version = ApiConstants.SERVICE_VERSION, timeout = 1000, check = true)
     private ProviderSecondApi secondApi;
@@ -30,7 +30,7 @@ public class ConsumerExamplesApplication implements CommandLineRunner {
 
     @Override
     public void run(String... args) throws Exception {
-        log.info(firstApi.sayHello("vergilyn"));
+        log.info(firstApi.sayHello("vergilyn", 1020));
         log.info(secondApi.print("vergilyn"));
 
         log.info(">>>> finish <<<<");

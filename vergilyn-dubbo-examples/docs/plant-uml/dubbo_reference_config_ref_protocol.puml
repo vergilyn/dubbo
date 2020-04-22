@@ -42,8 +42,8 @@ RegistryProtocol ..> "proxyFactory -> ProxyFactory$Adaptive" AS RegistryProtocol
 RegistryProtocol -->[ wrapper] "wrapper"
 note right
 instance = new RegistryProtocol();
-instance = new ProtocolFilterWrapper(instance);
-instance = new ProtocolListenerWrapper(instance);
+instance = new ProtocolFilterWrapper(Protocol protocol:instance);
+instance = new ProtocolListenerWrapper(Protocol protocol:instance);
 
 return instance;
 endnote

@@ -38,6 +38,7 @@ import org.apache.dubbo.common.utils.UrlUtils;
 import org.apache.dubbo.registry.NotifyListener;
 import org.apache.dubbo.registry.Registry;
 import org.apache.dubbo.registry.RegistryFactory;
+import org.apache.dubbo.registry.RegistryFactoryWrapper;
 import org.apache.dubbo.registry.RegistryService;
 import org.apache.dubbo.rpc.Exporter;
 import org.apache.dubbo.rpc.Invoker;
@@ -47,7 +48,9 @@ import org.apache.dubbo.rpc.ProxyFactory;
 import org.apache.dubbo.rpc.RpcException;
 import org.apache.dubbo.rpc.cluster.Cluster;
 import org.apache.dubbo.rpc.cluster.Configurator;
+import org.apache.dubbo.rpc.cluster.Directory;
 import org.apache.dubbo.rpc.cluster.governance.GovernanceRuleRepository;
+import org.apache.dubbo.rpc.cluster.support.wrapper.MockClusterWrapper;
 import org.apache.dubbo.rpc.model.ApplicationModel;
 import org.apache.dubbo.rpc.model.ProviderModel;
 import org.apache.dubbo.rpc.protocol.InvokerWrapper;
@@ -422,13 +425,29 @@ public class RegistryProtocol implements Protocol {
     @SuppressWarnings("unchecked")
     public <T> Invoker<T> refer(Class<T> type, URL url) throws RpcException {
         /** vergilyn-comment, 2020-04-21 >>>>
-         * EX. "registry://127.0.0.1:8848...?registry=nacos" -> "nacos://127.0.0.1:8848..."
+         * EX. "registry://127.0.0.1:8848...?registry=nacos" ->
+         * <pre>
+         *   nacos://localhost:8848/org.apache.dubbo.registry.RegistryService
+         *     ?application=dubbo-consumer-application
+         *     &side=consumer
+         *     &register.ip=10.2.14.20
+         *     &namespace=f349ebf8-6dea-4d49-836e-c0edd4ab6f42
+         *     &refer=application=dubbo-consumer-application
+         *     &check=false
+         *     &init=false
+         *     &interface=com.vergilyn.examples.api.ProviderFirstApi
+         *     &methods=sayHello,sayGoodbye
+         *     &retries=0&timeout=1000
+         *     &dubbo=2.0.2&logger=log4j2&pid=18764&dubbo=2.0.2&release=2.7.6.RELEASE&revision=1.0.0&sticky=false&timestamp=1587522905146&version=1.0.0&release=2.7.6.RELEASE&timestamp=1587522905185
+         * </pre>
          */
         url = getRegistryUrl(url);
 
         /** vergilyn-comment, 2020-04-21 >>>>
          * EX. registryFactory -> {@linkplain org.apache.dubbo.registry.RegistryFactory$Adaptive#getRegistry(org.apache.dubbo.common.URL)}
-         *      -url[protocol="nacos"]-> {@linkplain org.apache.dubbo.registry.nacos.NacosRegistryFactory}
+         *      --> {@linkplain RegistryFactoryWrapper#getRegistry(org.apache.dubbo.common.URL)}
+         *      -url[protocol="nacos"]->
+         *      ..... new ListenerRegistryWrapper(NacosRegistryFactory, List<RegistryServiceListener>)
          */
         Registry registry = registryFactory.getRegistry(url);
 
@@ -457,13 +476,31 @@ public class RegistryProtocol implements Protocol {
         directory.setProtocol(protocol);
         // all attributes of REFER_KEY
         Map<String, String> parameters = new HashMap<String, String>(directory.getConsumerUrl().getParameters());
+
+        /** vergilyn-comment, 2020-04-22 >>>>
+         *  EX.
+         *  consumer ->
+         *  <pre>
+         *      consumer://127.0.0.1/com.vergilyn.examples.api.ProviderFirstApi
+         *        ?application=dubbo-consumer-application
+         *        &side=consumer
+         *        &interface=com.vergilyn.examples.api.ProviderFirstApi
+         *        &methods=sayHello,sayGoodbye
+         *        &retries=0
+         *        &timeout=1000
+         *        &check=false&init=false
+         *        &pid=2332&release=2.7.6.RELEASE&dubbo=2.0.2&revision=1.0.0&sticky=false&timestamp=1587521148915&version=1.0.0&logger=log4j2
+         *  </pre>
+         */
         URL subscribeUrl = new URL(CONSUMER_PROTOCOL, parameters.remove(REGISTER_IP_KEY), 0, type.getName(), parameters);
+
         if (directory.isShouldRegister()) {
             directory.setRegisteredConsumerUrl(subscribeUrl);
 
             /**
-             * vergilyn-comment, 2020-04-21 >>>>
-             *  EX. {@link org.apache.dubbo.registry.ListenerRegistryWrapper#register(URL)}
+             * vergilyn-comment, 2020-04-21 >>>> IMPORTANT
+             *  EX.
+             *    consumer-side registry service, {@link org.apache.dubbo.registry.ListenerRegistryWrapper#register(URL)}
              */
             registry.register(directory.getRegisteredConsumerUrl());
         }
@@ -474,6 +511,17 @@ public class RegistryProtocol implements Protocol {
          */
         directory.subscribe(toSubscribeUrl(subscribeUrl));
 
+        /** vergilyn-comment, 2020-04-22 >>>> IMPORTANT, create invoker!
+         * EX.
+         *   consumer -> {@link org.apache.dubbo.rpc.cluster.Cluster$Adaptive#join(org.apache.dubbo.rpc.cluster.Directory)}
+         *     -> {@link MockClusterWrapper#join(org.apache.dubbo.rpc.cluster.Directory)}
+         *     -cluster-> {@link org.apache.dubbo.rpc.cluster.support.FailoverCluster#join(Directory)}
+         *     ----> invoker = new MockClusterInvoker(directory, invoker2)
+         *       ----> invoker2 = new InterceptorInvokerNode<>(clusterInvoker, interceptor, next)
+         *         -> clusterInvoker = new FailoverClusterInvoker<>(directory)
+         *         -> interceptor = new ConsumerContextClusterInterceptor();
+         *
+         */
         Invoker<T> invoker = cluster.join(directory);
         List<RegistryProtocolListener> listeners = findRegistryProtocolListeners(url);
         if (CollectionUtils.isEmpty(listeners)) {

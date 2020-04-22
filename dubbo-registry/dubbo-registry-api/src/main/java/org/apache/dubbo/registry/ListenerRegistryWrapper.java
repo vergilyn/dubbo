@@ -17,12 +17,12 @@
 
 package org.apache.dubbo.registry;
 
+import java.util.List;
+
 import org.apache.dubbo.common.URL;
 import org.apache.dubbo.common.logger.Logger;
 import org.apache.dubbo.common.logger.LoggerFactory;
 import org.apache.dubbo.common.utils.CollectionUtils;
-
-import java.util.List;
 
 public class ListenerRegistryWrapper implements Registry {
     private static final Logger logger = LoggerFactory.getLogger(ListenerRegistryWrapper.class);
@@ -30,7 +30,9 @@ public class ListenerRegistryWrapper implements Registry {
     private final Registry registry;
     private final List<RegistryServiceListener> listeners;
 
-
+    /**
+     * invoke <---- {@linkplain RegistryFactoryWrapper#getRegistry(org.apache.dubbo.common.URL)}
+     */
     public ListenerRegistryWrapper(Registry registry, List<RegistryServiceListener> listeners) {
         this.registry = registry;
         this.listeners = listeners;
@@ -54,6 +56,13 @@ public class ListenerRegistryWrapper implements Registry {
     @Override
     public void register(URL url) {
         try {
+            /** vergilyn-comment, 2020-04-21 >>>>
+             * EX.
+             *   consumer-side registry service
+             *   {@linkplain org.apache.dubbo.registry.nacos.NacosRegistryFactory#getRegistry(URL)}
+             *     -> {@linkplain org.apache.dubbo.registry.nacos.NacosRegistry#register(org.apache.dubbo.common.URL)}
+             *       -> {@linkplain org.apache.dubbo.registry.nacos.NacosRegistry#doRegister(URL)}
+             */
             registry.register(url);
         } finally {
             if (CollectionUtils.isNotEmpty(listeners)) {
@@ -102,6 +111,12 @@ public class ListenerRegistryWrapper implements Registry {
     @Override
     public void subscribe(URL url, NotifyListener listener) {
         try {
+            /** vergilyn-comment, 2020-04-22 >>>>
+             *   consumer-side subscribe service
+             *   {@linkplain org.apache.dubbo.registry.nacos.NacosRegistryFactory#getRegistry(URL)}
+             *     -> {@linkplain org.apache.dubbo.registry.nacos.NacosRegistry#subscribe(URL, NotifyListener)}
+             *       -> {@linkplain org.apache.dubbo.registry.nacos.NacosRegistry#doSubscribe(URL, NotifyListener)}
+             */
             registry.subscribe(url, listener);
         } finally {
             if (CollectionUtils.isNotEmpty(listeners)) {

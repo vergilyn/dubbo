@@ -182,6 +182,11 @@ public class RegistryDirectory<T> extends AbstractDirectory<T> implements Notify
         setConsumerUrl(url);
         CONSUMER_CONFIGURATION_LISTENER.addNotifyListener(this);
         serviceConfigurationListener = new ReferenceConfigurationListener(this, url);
+
+        /**
+         * vergilyn-comment, 2020-04-22 >>>>
+         *   EX. {@link org.apache.dubbo.registry.ListenerRegistryWrapper#subscribe(URL, NotifyListener)}
+         */
         registry.subscribe(url, this);
     }
 

@@ -16,6 +16,8 @@
  */
 package org.apache.dubbo.rpc.listener;
 
+import java.util.List;
+
 import org.apache.dubbo.common.URL;
 import org.apache.dubbo.common.logger.Logger;
 import org.apache.dubbo.common.logger.LoggerFactory;
@@ -25,8 +27,6 @@ import org.apache.dubbo.rpc.Invoker;
 import org.apache.dubbo.rpc.InvokerListener;
 import org.apache.dubbo.rpc.Result;
 import org.apache.dubbo.rpc.RpcException;
-
-import java.util.List;
 
 /**
  * ListenerInvoker
@@ -75,6 +75,10 @@ public class ListenerInvokerWrapper<T> implements Invoker<T> {
 
     @Override
     public Result invoke(Invocation invocation) throws RpcException {
+        /** vergilyn-comment, 2020-04-22 >>>>
+         * EX.
+         *   consumer -> {@link org.apache.dubbo.rpc.protocol.AsyncToSyncInvoker#invoke(Invocation)}
+         */
         return invoker.invoke(invocation);
     }
 

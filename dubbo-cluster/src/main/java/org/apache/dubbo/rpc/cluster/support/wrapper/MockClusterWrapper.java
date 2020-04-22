@@ -35,6 +35,10 @@ public class MockClusterWrapper implements Cluster {
 
     @Override
     public <T> Invoker<T> join(Directory<T> directory) throws RpcException {
+        /** vergilyn-comment, 2020-04-22 >>>>
+         * EX.
+         *   cluster -> {@link org.apache.dubbo.rpc.cluster.support.FailoverCluster#join(Directory)}
+         */
         return new MockClusterInvoker<T>(directory,
                 this.cluster.join(directory));
     }

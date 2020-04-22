@@ -419,12 +419,37 @@ public abstract class AbstractClient extends AbstractEndpoint implements Client 
 }
 ```
 
-#### 2.1.4 ""
+#### 2.1.4 "consumer invoke timeout"
 
 + [issues#6004, "first call time consumption too long"](https://github.com/apache/dubbo/issues/6004)
 
-例如`vergilyn-consumer-examples`，当`vergilyn-provider-examples`启动成功后（成功注册服务到nacos），再启动consumer，第一次调用会出现timeout：  
+例如当provider启动成功后（成功注册服务到nacos），再启动consumer，`@Reference(class = ProviderFirstApi.class, timeout = 1000, retries = 0)`第一次调用会出现timeout：  
 ```
+>>>> consumer
+@Reference(class = ProviderFirstApi.class, timeout = 1000, retries = 0)
+
+sayHello("vergilyn", 1000);
+
+>>>> provider
+@org.apache.dubbo.config.annotation.Service
+public class ProviderFirstApiImpl implements ProviderFirstApi {
+    @Override
+    public String sayHello(String name, long sleepMs) {
+        LocalTime begin = LocalTime.now();
+        TimeUnit.MILLISECONDS.sleep(sleepMs);
+        LocalTime end = LocalTime.now();
+
+        String result = String.format("[%s][%s][%s][%s] >>>> Hello, %s",
+                serviceName, this.getClass().getSimpleName(),
+                begin.toString(), end.toString(), name);
+
+        log.info("result >>>> {}", result);
+        return result;
+    }
+}
+
+
+>>>> log
 Error starting ApplicationContext. To display the conditions report re-run your application with 'debug' enabled.
 2020-04-20 17:05:25.990  WARN 17980 --- [:20880-thread-1] o.a.d.r.exchange.support.DefaultFuture   :  [DUBBO] The timeout response finally returned at 2020-04-20 17:05:25.990, 
 response Response [id=0, version=null, status=20, event=false, error=null, result=AppResponse [value=[dubbo-provider-application][ProviderFirstApiImpl] >>>>>>>> Hello, vergilyn, exception=null]], channel: /127.0.0.1:54284 -> /127.0.0.1:20880, dubbo version: 2.7.6.RELEASE, current host: 127.0.0.1
@@ -493,23 +518,30 @@ Caused by: org.apache.dubbo.remoting.TimeoutException:
 	... 21 common frames omitted
 ```
 
+然而，如果允许重试`retries >= 1`，那么其实最终（**可能**）会成功！
 
-2020-04-21 >>>>
-1. **org.apache.dubbo.config.ReferenceConfig.REF_PROTOCOL** 的实例对象 到底是什么，及其由来？
-  之前以为是`DubboProtocol`其实不是，根据javadocs和debug，也是包装了多层
+**低级错误，调用的provider service 存在`TimeUnit.SECONDS.sleep(1);`，所以 elapsed-time > timeout!**
+
+但是new-issues，为什么retries会成功？
+如果 retries 是新的(netty)request，那么provider 执行花费也会是 elapsed-time > timeout！
+通过查看 provider 代码，确实执行了2次method，并且 provider 确实sleep了1s。（本来猜测可能sleep(1s) 实际可能低于1s）
+
+retries 源码：
+- `FailoverClusterInvoker#doInvoke()`
+- `DefaultFuture#newFuture()` -> `DefaultFuture#timeoutCheck()`
+
 ```
-REF_PROTOCOL, registry -> {@link ProtocolListenerWrapper#refer(java.lang.Class, org.apache.dubbo.common.URL)}
-    -- ProtocolListenerWrapper.protocol -> {@link ProtocolFilterWrapper#refer(java.lang.Class, org.apache.dubbo.common.URL)}
-    -- ProtocolFilterWrapper.protocol -> {@link RegistryProtocol#refer(java.lang.Class, org.apache.dubbo.common.URL)}
+future.timeoutCheckTask = 
+            new HashedWheelTimer(
+                new NamedThreadFactory("dubbo-future-timeout", true),
+                tickDuration:30,
+                TimeUnit.MILLISECONDS
+            )
+            .newTimeout(new TimeoutCheckTask(future.getId()), 1000, TimeUnit.MILLISECONDS)
 ```
+通过以上可知，timeout 最大可能是 1000 + 30 = 1030 ms。
 
-2. org.apache.dubbo.registry.integration.RegistryProtocol 什么时候被实例化？
--
+client elapsed 第1次可能在 80ms，第2+次可能只需 1ms （复用netty）。
+server elapsed 始终在 1000 ms(业务方法执行时间) + xx ms(非业务方法执行时间)。
 
-3. RegistryProtocol 中部分成员变量的实例对象是？
-`RegistryProtocol#refer()`:  
-- registryFactory.getRegistry(url) -registry?-> registry.registry(url) ?
-- cluster, org.apache.dubbo.rpc.cluster.Cluster 
-- protocol, org.apache.dubbo.rpc.Protocol
-- registryFactory, org.apache.dubbo.registry.RegistryFactory
-- proxyFactory, org.apache.dubbo.rpc.ProxyFactory
+所以，可能存在第2+次的整个elapsed时间在 1030内，未触发timeout-check，所以**存在调用成功可能性！** 

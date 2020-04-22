@@ -1,5 +1,6 @@
 package com.vergilyn.examples.service;
 
+import java.time.LocalTime;
 import java.util.concurrent.TimeUnit;
 
 import com.vergilyn.examples.api.ApiConstants;
@@ -24,21 +25,39 @@ public class ProviderFirstApiImpl implements ProviderFirstApi {
     private String serviceName;
 
     @Override
-    public String sayHello(String name) {
-        sleep();
-        log.info("sayHello(String name) >>>> arg: {}", name);
-        return String.format("[%s][%s] >>>>>>>> Hello, %s", serviceName, this.getClass().getSimpleName(), name);
+    public String sayHello(String name, long sleepMs) {
+        LocalTime begin = LocalTime.now();
+        sleep(sleepMs);
+        LocalTime end = LocalTime.now();
+
+        String result = String.format("[%s][%s][%s][%s] >>>> Hello, %s",
+                serviceName, this.getClass().getSimpleName(),
+                begin.toString(), end.toString(), name);
+
+        log.info("result >>>> {}", result);
+        return result;
     }
 
     @Override
-    public String sayGoodbye(String name) {
-        sleep();
-        return String.format("[%s][%s] >>>>>>>> Goodbye, %s", serviceName, this.getClass().getSimpleName(), name);
+    public String sayGoodbye(String name, long sleepMs) {
+        LocalTime begin = LocalTime.now();
+        sleep(sleepMs);
+        LocalTime end = LocalTime.now();
+
+        String result = String.format("[%s][%s][%s][%s] >>>> Goodbye, %s",
+                serviceName, this.getClass().getSimpleName(),
+                begin.toString(), end.toString(), name);
+
+        log.info("result >>>> {}", result);
+        return result;
     }
 
-    private void sleep(){
+    private void sleep(long sleepMs){
+        if (sleepMs <= 0){
+            return;
+        }
         try {
-            TimeUnit.SECONDS.sleep(1);
+            TimeUnit.MILLISECONDS.sleep(sleepMs);
         } catch (InterruptedException e) {
             // do nothing
         }

@@ -6,9 +6,9 @@ package com.vergilyn.examples.api;
  */
 public interface ProviderFirstApi {
 
-    String sayHello(String name);
+    String sayHello(String name, long sleepMs);
 
-    default String sayGoodbye(String name) {
+    default String sayGoodbye(String name, long sleepMs) {
         return "Goodbye, " + name;
     }
 }

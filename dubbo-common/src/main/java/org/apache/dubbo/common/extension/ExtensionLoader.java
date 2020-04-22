@@ -118,8 +118,10 @@ public class ExtensionLoader<T> {
 
     /**
      * vergilyn-comment, 2020-04-21 >>>>
-     * [{@linkplain org.apache.dubbo.rpc.protocol.ProtocolFilterWrapper ProtocolFilterWrapper}
-     *  , {@linkplain org.apache.dubbo.rpc.protocol.ProtocolListenerWrapper ProtocolListenerWrapper}]
+     *  EX.
+     *    Protocol ->
+     *      [ {@linkplain org.apache.dubbo.rpc.protocol.ProtocolFilterWrapper ProtocolFilterWrapper}
+     *       ,{@linkplain org.apache.dubbo.rpc.protocol.ProtocolListenerWrapper ProtocolListenerWrapper}]
      */
     private Set<Class<?>> cachedWrapperClasses;
 

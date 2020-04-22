@@ -55,8 +55,6 @@ import org.apache.dubbo.rpc.model.AsyncMethodInfo;
 import org.apache.dubbo.rpc.model.ConsumerModel;
 import org.apache.dubbo.rpc.model.ServiceDescriptor;
 import org.apache.dubbo.rpc.model.ServiceRepository;
-import org.apache.dubbo.rpc.protocol.ProtocolFilterWrapper;
-import org.apache.dubbo.rpc.protocol.ProtocolListenerWrapper;
 import org.apache.dubbo.rpc.protocol.injvm.InjvmProtocol;
 import org.apache.dubbo.rpc.service.GenericService;
 import org.apache.dubbo.rpc.support.ProtocolUtils;
@@ -370,9 +368,7 @@ public class ReferenceConfig<T> extends ReferenceConfigBase<T> {
                  *   REF_PROTOCOL 经过dubbo-spi被多次包装
                  *   EX. consumer的整个调用栈
                  *   <pre>
-                 *      REF_PROTOCOL, registry -> {@link ProtocolListenerWrapper#refer(java.lang.Class, org.apache.dubbo.common.URL)}
-                 *        -- ProtocolListenerWrapper.protocol -> {@link ProtocolFilterWrapper#refer(java.lang.Class, org.apache.dubbo.common.URL)}
-                 *        -- ProtocolFilterWrapper.protocol -> {@link RegistryProtocol#refer(java.lang.Class, org.apache.dubbo.common.URL)}
+                 *       invoker -> {@link RegistryProtocol#doRefer(org.apache.dubbo.rpc.cluster.Cluster, org.apache.dubbo.registry.Registry, java.lang.Class, org.apache.dubbo.common.URL)}
                  *   </pre>
                  *
                  */
@@ -380,7 +376,7 @@ public class ReferenceConfig<T> extends ReferenceConfigBase<T> {
                 invoker = REF_PROTOCOL.refer(interfaceClass, urls.get(0));
 
             } else {
-                // 多个注册中心或多个服务提供者，或者两者混合
+                //多个注册中心或多个服务提供者，或者两者混合
                 List<Invoker<?>> invokers = new ArrayList<Invoker<?>>();
                 URL registryURL = null;
                 for (URL url : urls) {
