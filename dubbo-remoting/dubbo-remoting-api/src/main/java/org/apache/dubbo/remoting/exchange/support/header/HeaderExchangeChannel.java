@@ -141,6 +141,7 @@ final class HeaderExchangeChannel implements ExchangeChannel {
         req.setTwoWay(true);
         req.setData(request);
         DefaultFuture future = DefaultFuture.newFuture(channel, req, timeout, executor);
+
         try {
             /** vergilyn-comment, 2020-04-14 >>>>
              * EX. channel -> {@link org.apache.dubbo.remoting.transport.netty4.NettyClient#send(Object, boolean)}

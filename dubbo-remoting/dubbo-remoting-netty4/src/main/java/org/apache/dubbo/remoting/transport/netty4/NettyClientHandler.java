@@ -16,6 +16,8 @@
  */
 package org.apache.dubbo.remoting.transport.netty4;
 
+import java.time.LocalTime;
+
 import io.netty.channel.ChannelDuplexHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelPromise;
@@ -106,16 +108,16 @@ public class NettyClientHandler extends ChannelDuplexHandler {
         // We add listeners to make sure our out bound event is correct.
         // If our out bound event has an error (in most cases the encoder fails),
         // we need to have the request return directly instead of blocking the invoke process.
-        /** vergilyn-comment, 2020-04-13 >>>>
-         * EX. handler -> {@link NettyClient}
-         */
+        System.out.println("NettyClientHandler#Override() before `promise.addListener()` >>>> " + LocalTime.now().toString());
         promise.addListener(future -> {
             if (future.isSuccess()) {
                 /** vergilyn-comment, 2020-04-13 >>>>
-                 * @see NettyClient#sent(Channel, Object)
+                 * {@link NettyClient#sent(Channel, Object)}
                  */
+                System.out.println("NettyClientHandler#sent() sent before >>>> " + LocalTime.now().toString());
                 // if our future is success, mark the future to sent.
                 handler.sent(channel, msg);
+                System.out.println("NettyClientHandler#sent() sent after >>>> " + LocalTime.now().toString());
                 return;
             }
 

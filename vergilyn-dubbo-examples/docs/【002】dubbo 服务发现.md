@@ -526,10 +526,9 @@ Caused by: org.apache.dubbo.remoting.TimeoutException:
 如果 retries 是新的(netty)request，那么provider 执行花费也会是 elapsed-time > timeout！
 通过查看 provider 代码，确实执行了2次method，并且 provider 确实sleep了1s。（本来猜测可能sleep(1s) 实际可能低于1s）
 
-retries 源码：
-- `FailoverClusterInvoker#doInvoke()`
-- `DefaultFuture#newFuture()` -> `DefaultFuture#timeoutCheck()`
-
+retries code:
+- `FailoverClusterInvoker#doInvoke()`, retry logic
+- `DefaultFuture#newFuture()` -> `DefaultFuture#timeoutCheck()`, timeout check
 ```
 future.timeoutCheckTask = 
             new HashedWheelTimer(
@@ -537,11 +536,63 @@ future.timeoutCheckTask =
                 tickDuration:30,
                 TimeUnit.MILLISECONDS
             )
-            .newTimeout(new TimeoutCheckTask(future.getId()), 1000, TimeUnit.MILLISECONDS)
+            .newTimeout(new TimeoutCheckTask(future.getId()), delay: 1000, TimeUnit.MILLISECONDS)
 ```
-通过以上可知，timeout 最大可能是 1000 + 30 = 1030 ms。
 
-client elapsed 第1次可能在 80ms，第2+次可能只需 1ms （复用netty）。
-server elapsed 始终在 1000 ms(业务方法执行时间) + xx ms(非业务方法执行时间)。
+client start-time:  
+  `HeaderExchangeChannel#request(Object, int, ExecutorService)` 
+  -> `DefaultFuture#newFuture()` 
+  -> `DefaultFuture#timeoutCheck()` 
+  -> DefaultFuture.start = System.currentTimeMillis();
+  
+client end-time:  
+  `DefaultFuture#getTimeoutMessage()`
+  -> end-time = System.currentTimeMillis();
 
-所以，可能存在第2+次的整个elapsed时间在 1030内，未触发timeout-check，所以**存在调用成功可能性！** 
+client sent-time:  
+  `netty4.NettyClientHandler#write()` 
+  -listener-> `HeaderExchangeHandler#sent()` 
+  -> `DefaultFuture#doSent()` 
+  -> DefaultFuture.sent = System.currentTimeMillis();
+
+注意：因为异步调用，所以个人打印的LocalTime 其实是一起输出的。
+```text
+>>>> first request
+FailoverClusterInvoker#doInvoke() before `invoker.invoke()` >>>> 15:19:11.382
+HeaderExchangeChannel#request() before `newFuture` >>>> 15:19:11.385
+HeaderExchangeChannel#request() after `newFuture` >>>> 15:19:11.389             4 ms, <=> start-time
+NettyClientHandler#Override() before `super.write()` >>>> 15:19:11.395
+NettyClientHandler#Override() after `super.write()` >>>> 15:19:11.468           73 ms, 主要时间差
+NettyClientHandler#Override() before `promise.addListener()` >>>> 15:19:11.469
+NettyClientHandler#sent() sent before >>>> 15:19:11.473                         4 ms, <=> sent-time
+NettyClientHandler#sent() sent after >>>> 15:19:11.473                          
+
+>>>> first retry
+FailoverClusterInvoker#doInvoke() before `invoker.invoke()` >>>> 15:19:12.412
+HeaderExchangeChannel#request() before `newFuture` >>>> 15:19:12.412
+HeaderExchangeChannel#request() after `newFuture` >>>> 15:19:12.412             0 ms, <=> start-time
+NettyClientHandler#Override() before `super.write()` >>>> 15:19:12.412
+NettyClientHandler#Override() after `super.write()` >>>> 15:19:12.413           1 ms, 主要时间差
+NettyClientHandler#Override() before `promise.addListener()` >>>> 15:19:12.413
+NettyClientHandler#sent() sent before >>>> 15:19:12.413                         0 ms, <=> sent-time
+NettyClientHandler#sent() sent after >>>> 15:19:12.413
+
+>>>> first request
+Caused by: org.apache.dubbo.remoting.TimeoutException: 
+  Waiting server-side response timeout by scan timer. 
+  start time: 2020-04-23 15:19:11.388, end time: 2020-04-23 15:19:12.410, sent time: 2020-04-23 15:19:11.473, 
+  client elapsed: 85 ms, server elapsed: 937 ms, timeout: 1000 ms, 
+  request: ...
+
+>>>> first retry
+Caused by: org.apache.dubbo.remoting.TimeoutException: 
+  Waiting server-side response timeout by scan timer. 
+  start time: 2020-04-23 15:19:12.412, end time: 2020-04-23 15:19:13.429, sent time: 2020-04-23 15:19:12.413, 
+  client elapsed: 1 ms, server elapsed: 1016 ms, timeout: 1000 ms, 
+  request: ...
+
+```
+
+由上可知，最主要的时间差在：`netty4.NettyClientHandler#write()` 中的 `super.write()`，即netty.channel.write() 第1次 和 第2+次存在执行时间差距!
+所以，**首次请求时**多消耗约84ms在client部分，**重试时**这部分时间被用于server部分!
+

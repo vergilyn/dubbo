@@ -110,7 +110,9 @@ public class DubboInvoker<T> extends AbstractInvoker<T> {
 
                 /** vergilyn-comment, 2020-04-10 >>>>
                  * EX.
-                 *   currentClient -> {@link HeaderExchangeClient#request(java.lang.Object, int, java.util.concurrent.ExecutorService)},
+                 *   currentClient
+                 *     -> {@link HeaderExchangeClient#request(java.lang.Object, int, java.util.concurrent.ExecutorService)}
+                 *     ..> {@link org.apache.dubbo.remoting.exchange.support.header.HeaderExchangeChannel#request(java.lang.Object, int, java.util.concurrent.ExecutorService)}
                  *     内部会调用{@link DefaultFuture#newFuture(Channel, Request, int, ExecutorService)}创建接收结果的 future。
                  *
                  */

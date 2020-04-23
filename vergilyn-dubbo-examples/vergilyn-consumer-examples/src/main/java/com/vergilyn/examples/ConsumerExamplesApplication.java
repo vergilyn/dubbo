@@ -30,7 +30,7 @@ public class ConsumerExamplesApplication implements CommandLineRunner {
 
     @Override
     public void run(String... args) throws Exception {
-        log.info(firstApi.sayHello("vergilyn", 1020));
+        log.info(firstApi.sayHello("vergilyn", 1200));
         log.info(secondApi.print("vergilyn"));
 
         log.info(">>>> finish <<<<");

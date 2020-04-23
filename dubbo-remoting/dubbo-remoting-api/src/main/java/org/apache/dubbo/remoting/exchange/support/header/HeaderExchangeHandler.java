@@ -161,6 +161,9 @@ public class HeaderExchangeHandler implements ChannelHandlerDelegate {
             HeaderExchangeChannel.removeChannelIfDisconnected(channel);
         }
 
+        /** vergilyn-comment, 2020-04-23 >>>> mark sent-time
+         *  use-case -> {@link DefaultFuture#getTimeoutMessage(boolean)}
+         */
         if (message instanceof Request) {
             Request request = (Request) message;
             DefaultFuture.sent(channel, request);

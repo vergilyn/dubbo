@@ -16,10 +16,6 @@
 
 package org.apache.dubbo.common.timer;
 
-import org.apache.dubbo.common.logger.Logger;
-import org.apache.dubbo.common.logger.LoggerFactory;
-import org.apache.dubbo.common.utils.ClassUtils;
-
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Locale;
@@ -35,6 +31,10 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
 import java.util.concurrent.atomic.AtomicLong;
+
+import org.apache.dubbo.common.logger.Logger;
+import org.apache.dubbo.common.logger.LoggerFactory;
+import org.apache.dubbo.common.utils.ClassUtils;
 
 /**
  * A {@link Timer} optimized for approximated I/O timeout scheduling.
@@ -271,6 +271,11 @@ public class HashedWheelTimer implements Timer {
         }
     }
 
+    /** vergilyn-comment, 2020-04-23 >>>>
+     * see: {@linkplain java.util.HashMap}
+     * @param ticksPerWheel
+     * @return
+     */
     private static HashedWheelBucket[] createWheel(int ticksPerWheel) {
         if (ticksPerWheel <= 0) {
             throw new IllegalArgumentException(
