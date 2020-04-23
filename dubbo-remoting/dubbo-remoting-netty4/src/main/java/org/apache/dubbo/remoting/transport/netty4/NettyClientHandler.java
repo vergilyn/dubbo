@@ -16,8 +16,6 @@
  */
 package org.apache.dubbo.remoting.transport.netty4;
 
-import java.time.LocalTime;
-
 import io.netty.channel.ChannelDuplexHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelPromise;
@@ -31,6 +29,7 @@ import org.apache.dubbo.remoting.Channel;
 import org.apache.dubbo.remoting.ChannelHandler;
 import org.apache.dubbo.remoting.exchange.Request;
 import org.apache.dubbo.remoting.exchange.Response;
+import org.apache.dubbo.remoting.exchange.support.header.HeaderExchangeHandler;
 
 import static org.apache.dubbo.common.constants.CommonConstants.HEARTBEAT_EVENT;
 
@@ -95,10 +94,10 @@ public class NettyClientHandler extends ChannelDuplexHandler {
     @Override
     public void write(ChannelHandlerContext ctx, Object msg, ChannelPromise promise) throws Exception {
 
-        /** vergilyn-comment, 2020-04-09 >>>>
+        /**
+         * vergilyn-comment, 2020-04-09 >>>>
          *   传递给下一个 outbound（即发送msg给netty-server）
          *
-         * 后续 dubbo NettyClientHandler 调用的 `handler.sent()` 貌似只做一个标记。
          */
         super.write(ctx, msg, promise);
 
@@ -108,16 +107,17 @@ public class NettyClientHandler extends ChannelDuplexHandler {
         // We add listeners to make sure our out bound event is correct.
         // If our out bound event has an error (in most cases the encoder fails),
         // we need to have the request return directly instead of blocking the invoke process.
-        System.out.println("NettyClientHandler#Override() before `promise.addListener()` >>>> " + LocalTime.now().toString());
         promise.addListener(future -> {
             if (future.isSuccess()) {
                 /** vergilyn-comment, 2020-04-13 >>>>
-                 * {@link NettyClient#sent(Channel, Object)}
+                 * EX.
+                 *   {@link NettyClient#sent(Channel, Object)}
+                 *   -> {@link HeaderExchangeHandler#sent(org.apache.dubbo.remoting.Channel, java.lang.Object)}
+                 *   如果是`Request`内部会调用 {@link org.apache.dubbo.remoting.exchange.support.DefaultFuture#sent(Channel, Request)}
+                 *   设置sent-time用于判断 @Reference(timeout = 1000)
                  */
-                System.out.println("NettyClientHandler#sent() sent before >>>> " + LocalTime.now().toString());
                 // if our future is success, mark the future to sent.
                 handler.sent(channel, msg);
-                System.out.println("NettyClientHandler#sent() sent after >>>> " + LocalTime.now().toString());
                 return;
             }
 
