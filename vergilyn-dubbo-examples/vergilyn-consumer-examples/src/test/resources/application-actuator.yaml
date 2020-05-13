@@ -1,0 +1,21 @@
+management:
+  server:
+    port: 1${server.port}
+  endpoints:
+    web:
+      exposure:
+        include: '*'
+  endpoint:
+    # dubbo-spring-boot-actuator 扩展
+    dubbo:
+      enabled: true
+    dubboshutdown:
+      enabled: true
+    dubboconfigs:
+      enabled: true
+    dubboservices:
+      enabled: true
+    dubboreferences:
+      enabled: true
+    dubboproperties:
+      enabled: true
