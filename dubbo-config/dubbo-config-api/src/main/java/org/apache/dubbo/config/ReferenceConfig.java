@@ -399,9 +399,9 @@ public class ReferenceConfig<T> extends ReferenceConfigBase<T> {
         }
 
         //init serivceMetadata
-        serviceMetadata.setVersion(version);
-        serviceMetadata.setGroup(group);
-        serviceMetadata.setDefaultGroup(group);
+        serviceMetadata.setVersion(getVersion());
+        serviceMetadata.setGroup(getGroup());
+        serviceMetadata.setDefaultGroup(getGroup());
         serviceMetadata.setServiceType(getActualInterface());
         serviceMetadata.setServiceInterfaceName(interfaceName);
         // TODO, uncomment this line once service key is unified
@@ -464,26 +464,6 @@ public class ReferenceConfig<T> extends ReferenceConfigBase<T> {
     public void setBootstrap(DubboBootstrap bootstrap) {
         this.bootstrap = bootstrap;
     }
-
-    @SuppressWarnings("unused")
-    private final Object finalizerGuardian = new Object() {
-        @Override
-        protected void finalize() throws Throwable {
-            super.finalize();
-
-            if (!ReferenceConfig.this.destroyed) {
-                logger.warn("ReferenceConfig(" + url + ") is not DESTROYED when FINALIZE");
-
-                /* don't destroy for now
-                try {
-                    ReferenceConfig.this.destroy();
-                } catch (Throwable t) {
-                        logger.warn("Unexpected err when destroy invoker of ReferenceConfig(" + url + ") in finalize method!", t);
-                }
-                */
-            }
-        }
-    };
 
     private void postProcessConfig() {
         List<ConfigPostProcessor> configPostProcessors =ExtensionLoader.getExtensionLoader(ConfigPostProcessor.class)
