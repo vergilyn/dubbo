@@ -1,4 +1,4 @@
-package com.vergilyn.examples.consumer;
+package com.vergilyn.examples.consumer.feat;
 
 import java.lang.reflect.Method;
 
@@ -6,6 +6,7 @@ import com.vergilyn.examples.api.ApiConstants;
 import com.vergilyn.examples.api.SubclassApi;
 import com.vergilyn.examples.api.dto.ChildDto;
 import com.vergilyn.examples.api.dto.ParentDto;
+import com.vergilyn.examples.consumer.AbstractSpringBootTest;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.dubbo.common.utils.ReflectUtils;

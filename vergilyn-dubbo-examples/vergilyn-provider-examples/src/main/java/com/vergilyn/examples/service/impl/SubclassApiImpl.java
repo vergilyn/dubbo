@@ -1,4 +1,4 @@
-package com.vergilyn.examples.service;
+package com.vergilyn.examples.service.impl;
 
 import com.vergilyn.examples.api.ApiConstants;
 import com.vergilyn.examples.api.SubclassApi;

@@ -7,7 +7,7 @@
 
 ## provider
 
-T proxy: `class com.vergilyn.examples.service.ProviderFirstApiImpl`
+T proxy: `class com.vergilyn.examples.service.impl.ProviderFirstApiImpl`
 Class<T> type: `interface com.vergilyn.examples.api.ProviderFirstApi`
 URL url: 
 ```text

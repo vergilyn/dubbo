@@ -1,8 +1,9 @@
-package com.vergilyn.examples.consumer;
+package com.vergilyn.examples.consumer.feat;
 
 import com.vergilyn.examples.api.ApiConstants;
 import com.vergilyn.examples.api.ProviderFirstApi;
 import com.vergilyn.examples.api.ProviderSecondApi;
+import com.vergilyn.examples.consumer.AbstractSpringBootTest;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -15,7 +16,7 @@ import org.junit.jupiter.api.Test;
  * @date 2020-05-13
  */
 @Slf4j
-public class DubboApiTest extends AbstractSpringBootTest{
+public class DubboApiTest extends AbstractSpringBootTest {
 
     @Reference(version = ApiConstants.SERVICE_VERSION, timeout = 1000, check = false, retries = 3)
     private ProviderFirstApi firstApi;

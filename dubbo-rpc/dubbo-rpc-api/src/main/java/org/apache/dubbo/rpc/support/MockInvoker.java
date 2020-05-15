@@ -16,6 +16,14 @@
  */
 package org.apache.dubbo.rpc.support;
 
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Type;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+
+import com.alibaba.fastjson.JSON;
+
 import org.apache.dubbo.common.URL;
 import org.apache.dubbo.common.extension.ExtensionLoader;
 import org.apache.dubbo.common.utils.ArrayUtils;
@@ -31,14 +39,6 @@ import org.apache.dubbo.rpc.Result;
 import org.apache.dubbo.rpc.RpcException;
 import org.apache.dubbo.rpc.RpcInvocation;
 
-import com.alibaba.fastjson.JSON;
-
-import java.lang.reflect.Constructor;
-import java.lang.reflect.Type;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-
 import static org.apache.dubbo.rpc.Constants.FAIL_PREFIX;
 import static org.apache.dubbo.rpc.Constants.FORCE_PREFIX;
 import static org.apache.dubbo.rpc.Constants.MOCK_KEY;
@@ -48,6 +48,10 @@ import static org.apache.dubbo.rpc.Constants.THROW_PREFIX;
 
 final public class MockInvoker<T> implements Invoker<T> {
     private final static ProxyFactory PROXY_FACTORY = ExtensionLoader.getExtensionLoader(ProxyFactory.class).getAdaptiveExtension();
+    /**
+     * vergilyn-comment, 2020-05-14 >>>> mock cache
+     * key: Class.name  value: Invoker
+     */
     private final static Map<String, Invoker<?>> MOCK_MAP = new ConcurrentHashMap<String, Invoker<?>>();
     private final static Map<String, Throwable> THROWABLE_MAP = new ConcurrentHashMap<String, Throwable>();
 
@@ -175,6 +179,9 @@ final public class MockInvoker<T> implements Invoker<T> {
         return invoker;
     }
 
+    /**
+     * vergilyn-question, 2020-05-14 >>>> 只是 {@linkplain Class#newInstance()}
+     */
     @SuppressWarnings("unchecked")
     public static Object getMockObject(String mockService, Class serviceType) {
         if (ConfigUtils.isDefault(mockService)) {

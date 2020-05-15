@@ -1,7 +1,8 @@
-package com.vergilyn.examples.consumer;
+package com.vergilyn.examples.consumer.feat;
 
 import com.vergilyn.examples.api.ApiConstants;
 import com.vergilyn.examples.api.ProviderFirstApi;
+import com.vergilyn.examples.consumer.AbstractSpringBootTest;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.dubbo.config.annotation.Reference;
@@ -26,7 +27,7 @@ import org.junit.jupiter.api.Test;
  *
  */
 @Slf4j
-public class ClusterFailoverTest extends AbstractSpringBootTest{
+public class ClusterFailoverTest extends AbstractSpringBootTest {
 
     /*
      * Cluster strategy, legal values include: failover, failfast, failsafe, failback, forking
@@ -71,7 +72,7 @@ public class ClusterFailoverTest extends AbstractSpringBootTest{
      *   at org.apache.dubbo.rpc.cluster.support.wrapper.MockClusterInvoker.invoke(MockClusterInvoker.java:86)
      *   at org.apache.dubbo.rpc.proxy.InvokerInvocationHandler.invoke(InvokerInvocationHandler.java:96)
      *   at org.apache.dubbo.common.bytecode.proxy0.sayHello(proxy0.java)
-     *   at com.vergilyn.examples.consumer.ClusterFailoverTest.test(ClusterFailoverTest.java:48)
+     *   at com.vergilyn.examples.consumer.feat.ClusterFailoverTest.test(ClusterFailoverTest.java:48)
      * 	 ....
      * ```
      * 虽然配置的是`failfast`，但实际是`failover`

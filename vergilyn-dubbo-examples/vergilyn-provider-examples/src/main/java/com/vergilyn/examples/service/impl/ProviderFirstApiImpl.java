@@ -1,4 +1,4 @@
-package com.vergilyn.examples.service;
+package com.vergilyn.examples.service.impl;
 
 import java.time.LocalTime;
 import java.util.concurrent.TimeUnit;
