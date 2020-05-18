@@ -11,20 +11,8 @@ import org.junit.jupiter.api.Test;
 /**
  * <a href="http://dubbo.apache.org/zh-cn/docs/user/demos/fault-tolerent-strategy.html">dubbo 集群容错</a>
  *
- *
  * @author vergilyn
  * @date 2020-05-13
- *
- * @see org.apache.dubbo.rpc.cluster.support.wrapper.AbstractCluster
- * @see org.apache.dubbo.rpc.cluster.support.BroadcastCluster
- * @see org.apache.dubbo.rpc.cluster.support.FailbackCluster "failback"
- * @see org.apache.dubbo.rpc.cluster.support.FailfastCluster "failfast"
- * @see org.apache.dubbo.rpc.cluster.support.FailoverCluster "failover"
- * @see org.apache.dubbo.rpc.cluster.support.FailsafeCluster "failsafe"
- * @see org.apache.dubbo.rpc.cluster.support.ForkingCluster  "forking"
- * @see org.apache.dubbo.rpc.cluster.support.MergeableCluster "mergeable"
- * @see org.apache.dubbo.rpc.cluster.support.registry.ZoneAwareCluster "zone-aware"
- *
  */
 @Slf4j
 public class ClusterFailoverTest extends AbstractSpringBootTest {
@@ -43,13 +31,6 @@ public class ClusterFailoverTest extends AbstractSpringBootTest {
     @Reference(version = ApiConstants.SERVICE_VERSION, timeout = 100, check = true
             , retries = 2, cluster = "failfast")
     private ProviderFirstApi firstApi;
-
-    @Test
-    public void test(){
-        String rs = firstApi.sayHello("vergilyn", 1000);
-
-        System.out.println(rs);
-    }
 
     /**
      * <a href="https://github.com/apache/dubbo/issues/6108">issues#6108, v2.7.6 dubbo.consumer.cluster = failfast 失效</a>
