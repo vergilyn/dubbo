@@ -1,4 +1,4 @@
-package com.vergilyn.examples.consumer.feat;
+package com.vergilyn.examples.consumer.issues;
 
 import com.vergilyn.examples.api.ApiConstants;
 import com.vergilyn.examples.api.ProviderFirstApi;
@@ -41,7 +41,7 @@ public class ClusterFailoverTest extends AbstractSpringBootTest {
      * broadcast      广播逐个调用所有提供者，任意一个报错则报错
      */
     @Reference(version = ApiConstants.SERVICE_VERSION, timeout = 100, check = true
-            , retries = 2, cluster = "failfast", parameters = {"k1", "v1"} )
+            , retries = 2, cluster = "failfast")
     private ProviderFirstApi firstApi;
 
     @Test
@@ -72,9 +72,10 @@ public class ClusterFailoverTest extends AbstractSpringBootTest {
      *   at org.apache.dubbo.rpc.cluster.support.wrapper.MockClusterInvoker.invoke(MockClusterInvoker.java:86)
      *   at org.apache.dubbo.rpc.proxy.InvokerInvocationHandler.invoke(InvokerInvocationHandler.java:96)
      *   at org.apache.dubbo.common.bytecode.proxy0.sayHello(proxy0.java)
-     *   at com.vergilyn.examples.consumer.feat.ClusterFailoverTest.test(ClusterFailoverTest.java:48)
+     *   at com.vergilyn.examples.consumer.issues.ClusterFailoverTest.test(ClusterFailoverTest.java:48)
      * 	 ....
      * ```
+     *
      * 虽然配置的是`failfast`，但实际是`failover`
      */
     @Test

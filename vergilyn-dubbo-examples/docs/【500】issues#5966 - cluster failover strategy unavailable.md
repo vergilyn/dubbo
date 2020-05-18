@@ -32,7 +32,7 @@ org.apache.dubbo.rpc.RpcException: Failed to invoke the method sayHello in the s
    at org.apache.dubbo.rpc.cluster.support.wrapper.MockClusterInvoker.invoke(MockClusterInvoker.java:86)
    at org.apache.dubbo.rpc.proxy.InvokerInvocationHandler.invoke(InvokerInvocationHandler.java:96)
    at org.apache.dubbo.common.bytecode.proxy0.sayHello(proxy0.java)
-   at com.vergilyn.examples.consumer.feat.ClusterFailoverTest.test(ClusterFailoverTest.java:48)
+   at com.vergilyn.examples.consumer.issues.ClusterFailoverTest.test(ClusterFailoverTest.java:48)
    ....
 ```
 
