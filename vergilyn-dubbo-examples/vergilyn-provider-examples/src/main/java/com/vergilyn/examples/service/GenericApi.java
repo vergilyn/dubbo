@@ -11,5 +11,9 @@ public interface GenericApi {
 
     String invoke(String param);
 
+    String array(String[] params);
+
+    String array(byte[] params);
+
     boolean invoke();
 }

@@ -16,13 +16,6 @@
  */
 package org.apache.dubbo.rpc;
 
-import org.apache.dubbo.common.Experimental;
-import org.apache.dubbo.common.URL;
-import org.apache.dubbo.common.threadlocal.InternalThreadLocal;
-import org.apache.dubbo.common.utils.CollectionUtils;
-import org.apache.dubbo.common.utils.NetUtils;
-import org.apache.dubbo.common.utils.StringUtils;
-
 import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -32,6 +25,13 @@ import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Future;
+
+import org.apache.dubbo.common.Experimental;
+import org.apache.dubbo.common.URL;
+import org.apache.dubbo.common.threadlocal.InternalThreadLocal;
+import org.apache.dubbo.common.utils.CollectionUtils;
+import org.apache.dubbo.common.utils.NetUtils;
+import org.apache.dubbo.common.utils.StringUtils;
 
 import static org.apache.dubbo.common.constants.CommonConstants.CONSUMER_SIDE;
 import static org.apache.dubbo.common.constants.CommonConstants.PROVIDER_SIDE;
@@ -534,6 +534,7 @@ public class RpcContext {
 
     /**
      * get attachments.
+     * <p>use {@link #getObjectAttachments()} instead.
      *
      * @return attachments
      */

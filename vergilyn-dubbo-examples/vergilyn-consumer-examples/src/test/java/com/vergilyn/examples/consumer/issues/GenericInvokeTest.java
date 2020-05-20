@@ -12,6 +12,7 @@ import com.vergilyn.examples.consumer.AbstractSpringBootTest;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.dubbo.config.ReferenceConfig;
 import org.apache.dubbo.config.annotation.Reference;
+import org.apache.dubbo.rpc.proxy.InvokerInvocationHandler;
 import org.apache.dubbo.rpc.service.GenericService;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -31,6 +32,7 @@ import org.testng.collections.Maps;
  * @author vergilyn
  * @date 2020-05-14
  *
+ * @see InvokerInvocationHandler#invoke(java.lang.Object, java.lang.reflect.Method, java.lang.Object[])
  * @see com.vergilyn.examples.service.impl.GenericApiImpl
  */
 @Slf4j
@@ -136,6 +138,27 @@ public class GenericInvokeTest extends AbstractSpringBootTest {
 
         Assertions.assertEquals(clazz, rs.get("class"));
         Assertions.assertEquals(param.get("pid"), rs.get("pid"));
+
+    }
+
+    /**
+     * 泛化调用数组参数
+     */
+    @Test
+    public void arrayParam(){
+        String[] params = {"a", "b"};
+
+        Object actual = annoGenericService.$invoke("array", new String[]
+                {"java.lang.String[]"}, new Object[]{params});
+
+        System.out.println(actual);
+
+        byte[] param = "a".getBytes();
+
+        actual = annoGenericService.$invoke("array", new String[]
+                {"byte[]"}, new Object[]{param});
+
+        System.out.println(actual);
 
     }
 }
