@@ -133,6 +133,9 @@ public class HeaderExchangeClient implements ExchangeClient {
 
     @Override
     public void send(Object message) throws RemotingException {
+        /** vergilyn-comment, 2020-04-13 >>>>
+         * EX. channel -> {@link HeaderExchangeChannel#send(Object)}
+         */
         channel.send(message);
     }
 
@@ -208,8 +211,8 @@ public class HeaderExchangeClient implements ExchangeClient {
     private void startHeartBeatTask(URL url) {
         if (!client.canHandleIdle()) {
             AbstractTimerTask.ChannelProvider cp = () -> Collections.singletonList(HeaderExchangeClient.this);
-            int heartbeat = getHeartbeat(url);
-            long heartbeatTick = calculateLeastDuration(heartbeat);
+            int heartbeat = getHeartbeat(url);  // ex. url.heartbeat | 60s
+            long heartbeatTick = calculateLeastDuration(heartbeat);  // ex. 60s / 3 = 20s
             this.heartBeatTimerTask = new HeartbeatTimerTask(cp, heartbeatTick, heartbeat);
             IDLE_CHECK_TIMER.newTimeout(heartBeatTimerTask, heartbeatTick, TimeUnit.MILLISECONDS);
         }
@@ -218,8 +221,8 @@ public class HeaderExchangeClient implements ExchangeClient {
     private void startReconnectTask(URL url) {
         if (shouldReconnect(url)) {
             AbstractTimerTask.ChannelProvider cp = () -> Collections.singletonList(HeaderExchangeClient.this);
-            int idleTimeout = getIdleTimeout(url);
-            long heartbeatTimeoutTick = calculateLeastDuration(idleTimeout);
+            int idleTimeout = getIdleTimeout(url);  // ex. url.heartbeat.timeout | url.heartbeat * 3 (180s), and > heartbeat * 2
+            long heartbeatTimeoutTick = calculateLeastDuration(idleTimeout);  // ex. idleTimeout / 3 = 60s
             this.reconnectTimerTask = new ReconnectTimerTask(cp, heartbeatTimeoutTick, idleTimeout);
             IDLE_CHECK_TIMER.newTimeout(reconnectTimerTask, heartbeatTimeoutTick, TimeUnit.MILLISECONDS);
         }

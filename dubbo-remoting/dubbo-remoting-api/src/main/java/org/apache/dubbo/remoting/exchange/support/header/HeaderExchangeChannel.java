@@ -104,7 +104,7 @@ final class HeaderExchangeChannel implements ExchangeChannel {
          */
         if (message instanceof Request
                 || message instanceof Response
-                || message instanceof String) {
+                || message instanceof String) {  // ex. heartbeat
             channel.send(message, sent);
         } else {
             Request request = new Request();

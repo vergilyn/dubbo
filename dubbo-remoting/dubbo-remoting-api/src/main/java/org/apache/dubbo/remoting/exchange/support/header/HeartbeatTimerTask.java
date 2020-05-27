@@ -42,6 +42,9 @@ public class HeartbeatTimerTask extends AbstractTimerTask {
     @Override
     protected void doTask(Channel channel) {
         try {
+            /* vergilyn-comment, 2020-05-26 >>>>
+             *  因为是双向（two-way）的，所以有 last-read & last-write
+             */
             Long lastRead = lastRead(channel);
             Long lastWrite = lastWrite(channel);
             if ((lastRead != null && now() - lastRead > heartbeat)
@@ -50,6 +53,9 @@ public class HeartbeatTimerTask extends AbstractTimerTask {
                 req.setVersion(Version.getProtocolVersion());
                 req.setTwoWay(true);
                 req.setEvent(HEARTBEAT_EVENT);
+                /** vergilyn-comment, 2020-05-27 >>>>
+                 * ex. {@linkplain HeaderExchangeClient#send(java.lang.Object)}
+                 */
                 channel.send(req);
                 if (logger.isDebugEnabled()) {
                     logger.debug("Send heartbeat to remote channel " + channel.getRemoteAddress()

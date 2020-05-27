@@ -47,9 +47,10 @@ org.apache.dubbo.rpc.RpcException: Failed to invoke the method sayHello in the s
 3. `Cluster$Adaptive` 
 `url.getParameter("cluster", default: "failover") = "failover"`
 
-
+org.apache.dubbo.common.extension.AdaptiveClassCodeGenerator.generateUrlAssignmentIndirectly
 个人解决思路：  
-1. 可以修改 code-generator(即 `Cluster$Adaptive` )，不使用`url.getUrl()`，而是使用`url.getConsumerUlr()`（包含 failover-strategy）。
+1. 可以修改 code-generator(`org.apache.dubbo.common.extension.AdaptiveClassCodeGenerator#generateUrlAssignmentIndirectly(Method)` -> `Cluster$Adaptive` )，
+不使用`url.getUrl()`，而是使用`url.getConsumerUlr()`（包含 failover-strategy）。
 
 但是这种做法貌似不满足 [配置加载流程](http://dubbo.apache.org/zh-cn/docs/user/configuration/configuration-load-process.html)
 

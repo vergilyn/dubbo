@@ -58,6 +58,9 @@ public class NettyClientHandler extends ChannelDuplexHandler {
         this.handler = handler;
     }
 
+    /* vergilyn-comment, 2020-05-27 >>>>
+     *   Netty `channel.connect()`时会触发调用：`channelRegistered()` -> `channelActive()`
+     */
     @Override
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
         NettyChannel channel = NettyChannel.getOrAddChannel(ctx.channel(), url, handler);

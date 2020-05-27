@@ -39,6 +39,9 @@ public class ReconnectTimerTask extends AbstractTimerTask {
     @Override
     protected void doTask(Channel channel) {
         try {
+            /** vergilyn-comment, 2020-05-27 >>>>
+             *  {@linkplain HeartbeatTimerTask#doTask(Channel)}
+             */
             Long lastRead = lastRead(channel);
             Long now = now();
 

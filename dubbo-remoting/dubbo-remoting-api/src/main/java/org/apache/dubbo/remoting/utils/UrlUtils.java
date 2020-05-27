@@ -31,6 +31,11 @@ public class UrlUtils {
         return idleTimeout;
     }
 
+    /**
+     * url.heartbeat || 60s
+     * @param url
+     * @return
+     */
     public static int getHeartbeat(URL url) {
         return url.getParameter(Constants.HEARTBEAT_KEY, Constants.DEFAULT_HEARTBEAT);
     }
