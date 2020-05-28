@@ -6,8 +6,9 @@ import org.apache.dubbo.rpc.RpcContext;
 import org.junit.jupiter.api.Test;
 
 /**
- * <a href="https://github.com/apache/dubbo/issues/6162">issues#6162, RpcContext Attatchment Bug in `ObjectToStringMap` for dubbo `2.7.6` </a>
- * <a href="https://github.com/apache/dubbo/pull/6163">pull#6163, fix#6162</a>
+ * <li><a href="https://github.com/apache/dubbo/issues/6162">issues#6162, RpcContext Attatchment Bug in `ObjectToStringMap` for dubbo `2.7.6` </a>
+ * <li><a href="https://github.com/apache/dubbo/pull/6163">pull#6163, fix#6162</a>
+ * <li><a href="https://github.com/apache/dubbo/pull/6210">(Merged)pull#6210, fix object attachments iteration bug </a>
  *
  * @author vergilyn
  * @date 2020-05-20
@@ -18,6 +19,10 @@ import org.junit.jupiter.api.Test;
 
 public class RpcContextAttachmentsMainTest {
 
+    /**
+     * FIXED 2020-05-28
+     * <a href="https://github.com/apache/dubbo/pull/6210">(Merged)pull#6210, fix object attachments iteration bug </a>
+     */
     @Test
     public void issues6162(){
         /* `getAttachments()` 每次都会 `new ObjectToStringMap(this.getObjectAttachments())`

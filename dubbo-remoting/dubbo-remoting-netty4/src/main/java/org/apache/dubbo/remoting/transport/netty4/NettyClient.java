@@ -117,7 +117,7 @@ public class NettyClient extends AbstractClient {
                         .addLast("decoder", adapter.getDecoder())
                         // outbound
                         .addLast("encoder", adapter.getEncoder())
-                        // inbound & outbound
+                        // inbound & outbound, heartbeat-check 满足则触发事件 `NettyClientHandler#userEventTriggered(...)` （发送heartbeat_event）
                         .addLast("client-idle-handler", new IdleStateHandler(heartbeatInterval, 0, 0, MILLISECONDS))
                         // inbound & outbound
                         .addLast("handler", nettyClientHandler);

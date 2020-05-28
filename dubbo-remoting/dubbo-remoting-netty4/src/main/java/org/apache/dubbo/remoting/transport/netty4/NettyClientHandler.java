@@ -30,6 +30,7 @@ import org.apache.dubbo.remoting.ChannelHandler;
 import org.apache.dubbo.remoting.exchange.Request;
 import org.apache.dubbo.remoting.exchange.Response;
 import org.apache.dubbo.remoting.exchange.support.header.HeaderExchangeHandler;
+import org.apache.dubbo.remoting.exchange.support.header.HeartbeatHandler;
 
 import static org.apache.dubbo.common.constants.CommonConstants.HEARTBEAT_EVENT;
 
@@ -64,6 +65,11 @@ public class NettyClientHandler extends ChannelDuplexHandler {
     @Override
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
         NettyChannel channel = NettyChannel.getOrAddChannel(ctx.channel(), url, handler);
+        /**
+         * vergilyn-comment, 2020-05-28 >>>>
+         *   handler includes:
+         *      - {@linkplain org.apache.dubbo.remoting.exchange.support.header.HeartbeatHandler#connected(Channel)}: update `last-read` and `last-write`
+         */
         handler.connected(channel);
         if (logger.isInfoEnabled()) {
             logger.info("The connection of " + channel.getLocalAddress() + " -> " + channel.getRemoteAddress() + " is established.");
@@ -115,6 +121,7 @@ public class NettyClientHandler extends ChannelDuplexHandler {
                 /** vergilyn-comment, 2020-04-13 >>>>
                  * EX.
                  *   {@link NettyClient#sent(Channel, Object)}
+                 *   -> {@link HeartbeatHandler#sent(org.apache.dubbo.remoting.Channel, java.lang.Object)}: heartbeat, update last-write
                  *   -> {@link HeaderExchangeHandler#sent(org.apache.dubbo.remoting.Channel, java.lang.Object)}
                  *   如果是`Request`内部会调用 {@link org.apache.dubbo.remoting.exchange.support.DefaultFuture#sent(Channel, Request)}
                  *   设置sent-time用于判断 @Reference(timeout = 1000)

@@ -31,12 +31,15 @@
 
 ### HeaderExchangeClient - HeartbeatTask
 `HeaderExchangeClient#startHeartBeatTask(...)`:  
+expression: `last-read || last-write`  
 heartbeat: url.heartbeat | 60s  
 HEARTBEAT_CHECK_TICK: 3 (固定)  
 heartbeatTimeoutTick: heartbeat / HEARTBEAT_CHECK_TICK = 20s  
 每heartbeatTimeoutTick(20s)检测1次heartbeat，若间隔大于heartbeat(60s)则发送1次心跳。  
+（或者 netty IdleStateHandler）
 
 `HeaderExchangeClient#startReconnectTask(...)`:  
+expression: `init-connect || last-read`
 idleTimeout: url.heartbeat.timeout | url.heartbeat * 3, and > heartbeat * 2  (ex. 60s * 3 = 180s)  
 heartbeatTimeoutTick: idleTimeout / 3 = 60s  
 每60s检测1次idle-timeout，若间隔大于idleTimeout(180s)则reconnect。
@@ -45,3 +48,18 @@ last-read update:
 - `HeartbeatHandler#connected()`
 - `HeartbeatHandler#received()`
 
+last-write update:
+- `HeartbeatHandler#connected()`
+- `HeartbeatHandler#sent()`
+
+`HeartbeatHandler#connected()`:  
+当调用 `Netty.channel#connect() -> NettyClient#doConnect()` 触发netty的调用栈从而调用 `channelActive() -> HeartbeatHandler#connected()`。
+
+`HeartbeatHandler#sent()`:  
+发送请求时调用到`NettyClientHandler#write()` 从而调用`HeartbeatHandler#sent()`
+
+`HeartbeatHandler#received()`:  
+接收请求时会调用。
+
+`IdleStateHandler`:  
+基于netty的`userEventTriggered`
