@@ -26,6 +26,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import com.alibaba.spring.util.AnnotatedBeanDefinitionRegistryUtils;
+import com.alibaba.spring.util.BeanRegistrar;
+
 import org.apache.dubbo.common.logger.Logger;
 import org.apache.dubbo.common.logger.LoggerFactory;
 import org.apache.dubbo.common.utils.ArrayUtils;
@@ -63,7 +66,6 @@ import org.springframework.util.CollectionUtils;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 
-import static com.alibaba.spring.util.AnnotatedBeanDefinitionRegistryUtils.registerBeans;
 import static com.alibaba.spring.util.ObjectUtils.of;
 import static org.apache.dubbo.config.spring.beans.factory.annotation.ServiceBeanNameBuilder.create;
 import static org.apache.dubbo.config.spring.util.DubboAnnotationUtils.resolveServiceInterfaceClass;
@@ -110,12 +112,16 @@ public class ServiceAnnotationBeanPostProcessor implements BeanDefinitionRegistr
     @Override
     public void postProcessBeanDefinitionRegistry(BeanDefinitionRegistry registry) throws BeansException {
 
-        /* vergilyn-comment, 2020-03-09 >>>>
-         *   可能造成 repeat-registry，因为 @EnableDubbo 中会先去registry该类。
-         *   解决方法 application.properties 中将 `spring.main.allow-bean-definition-overriding = true`
+        /** vergilyn-question, 2020-03-09 >>>> 可能造成 repeat-registry
+         *   因为{@link org.apache.dubbo.config.spring.context.annotation.EnableDubbo} 中会先registry这个bean，
+         *   并且 {@link AnnotatedBeanDefinitionRegistryUtils#registerBeans(org.springframework.beans.factory.support.BeanDefinitionRegistry, java.lang.Class[])} 并未判断重复注册。
+         *
+         *   解决方法：
+         *   1. application.properties 中将 `spring.main.allow-bean-definition-overriding = true`
+         *   2. 统一使用 {@link BeanRegistrar#registerInfrastructureBean(BeanDefinitionRegistry, String, Class)} （会判断重复注册）
          */
         // @since 2.7.5
-        registerBeans(registry, DubboBootstrapApplicationListener.class);
+        AnnotatedBeanDefinitionRegistryUtils.registerBeans(registry, DubboBootstrapApplicationListener.class);
 
         Set<String> resolvedPackagesToScan = resolvePackagesToScan(packagesToScan);
 

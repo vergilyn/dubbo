@@ -40,38 +40,7 @@ dubbo.protocol.port=20880
 
 ### 2.1 FAQ
 
-#### 2.1.1 `The bean 'dubboBootstrapApplicationListener' could not be registered. A bean with that name has already been defined and overriding is disabled.`
-```
-***************************
-APPLICATION FAILED TO START
-***************************
 
-Description:
-
-The bean 'dubboBootstrapApplicationListener' could not be registered. A bean with that name has already been defined and overriding is disabled.
-
-Action:
-
-Consider renaming one of the beans or enabling overriding by setting spring.main.allow-bean-definition-overriding=true
-```
-
-原因很简单，可以参考：[spring中 allowBeanDefinitionOverriding(spring.main.allow-bean-definition-overriding) 分析](https://blog.csdn.net/liubenlong007/article/details/87885567)
-**解决方法**：application.properties 中将 `spring.main.allow-bean-definition-overriding = true`。
-
-**为什么"dubboBootstrapApplicationListener"会被registry 2次？**
-
-第1次：
-因为`@EnableDubboConfig`源码中存在`@Import(DubboConfigConfigurationRegistrar.class)`，
-并且`DubboConfigConfigurationRegistrar implements org.springframework.context.annotation.ImportBeanDefinitionRegistrar`。
-所以，启动时会调用`DubboConfigConfigurationRegistrar#registerBeanDefinitions(...)`。
-其中会registry "dubboBootstrapApplicationListener"。
-
-虽然，`@EnableDubboConfig`、`@DubboComponentScan`会重复调用`DubboBeanUtils#registerCommonBeans(...)`，
-但通过源码`com.alibaba.spring.util.BeanRegistrar#registerInfrastructureBean(...)`可知，不会造成 repeat-registry。
-（此时只是registry-bean，并未实例化！！！）
-
-第2次：（可能不止下面这一处）
-`ServiceAnnotationBeanPostProcessor#postProcessBeanDefinitionRegistry(...)`
 
 #### 2.1.2 `java.lang.IllegalStateException: No such extension org.apache.dubbo.rpc.Protocol by name dubbo`
 ```
