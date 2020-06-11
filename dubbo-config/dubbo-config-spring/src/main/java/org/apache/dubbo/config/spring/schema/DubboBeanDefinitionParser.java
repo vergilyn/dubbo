@@ -16,10 +16,18 @@
  */
 package org.apache.dubbo.config.spring.schema;
 
+import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.regex.Pattern;
+
 import org.apache.dubbo.common.logger.Logger;
 import org.apache.dubbo.common.logger.LoggerFactory;
 import org.apache.dubbo.common.utils.ReflectUtils;
 import org.apache.dubbo.common.utils.StringUtils;
+import org.apache.dubbo.config.AbstractConfig;
 import org.apache.dubbo.config.AbstractServiceConfig;
 import org.apache.dubbo.config.ArgumentConfig;
 import org.apache.dubbo.config.ConsumerConfig;
@@ -30,7 +38,6 @@ import org.apache.dubbo.config.RegistryConfig;
 import org.apache.dubbo.config.spring.ReferenceBean;
 import org.apache.dubbo.config.spring.ServiceBean;
 import org.apache.dubbo.config.spring.beans.factory.annotation.DubboConfigAliasPostProcessor;
-
 import org.springframework.beans.PropertyValue;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.BeanDefinitionHolder;
@@ -46,13 +53,6 @@ import org.w3c.dom.Element;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
-
-import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.regex.Pattern;
 
 import static com.alibaba.spring.util.BeanRegistrar.registerInfrastructureBean;
 import static org.apache.dubbo.common.constants.CommonConstants.HIDE_KEY_PREFIX;
@@ -96,6 +96,12 @@ public class DubboBeanDefinitionParser implements BeanDefinitionParser {
             if (StringUtils.isEmpty(generatedBeanName)) {
                 generatedBeanName = beanClass.getName();
             }
+            /** vergilyn-comment, 2020-06-12 >>>>
+             * ex. 同一接口多个实现属于不用的group
+             *   - org.apache.dubbo.samples.group.api.GroupService
+             *   - org.apache.dubbo.samples.group.api.GroupService2
+             *   - org.apache.dubbo.samples.group.api.GroupService[3+]
+             */
             id = generatedBeanName;
             int counter = 2;
             while (parserContext.getRegistry().containsBeanDefinition(id)) {
@@ -106,6 +112,10 @@ public class DubboBeanDefinitionParser implements BeanDefinitionParser {
             if (parserContext.getRegistry().containsBeanDefinition(id)) {
                 throw new IllegalStateException("Duplicate spring bean id " + id);
             }
+            /** vergilyn-comment, 2020-06-12 >>>> IMPORTANT!
+             *  EX. {@link ServiceBean#id} or {@link org.apache.dubbo.config.ServiceConfig#id}
+             *    `id` 用途 --> {@link org.apache.dubbo.config.context.ConfigManager#addConfig(AbstractConfig)}
+             */
             parserContext.getRegistry().registerBeanDefinition(id, beanDefinition);
             beanDefinition.getPropertyValues().addPropertyValue("id", id);
         }

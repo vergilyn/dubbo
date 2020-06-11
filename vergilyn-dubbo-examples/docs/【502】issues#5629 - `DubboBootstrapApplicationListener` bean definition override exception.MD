@@ -5,7 +5,9 @@
 + [A bean with that name has already been defined and overriding is disabled][issues#5610]
 + [issues#6231]
 + [issues#6250]
++ [pull#6253]
 
+[pull#6253]: https://github.com/apache/dubbo/pull/6253
 [issues#5591]: https://github.com/apache/dubbo/issues/5591
 [issues#5629]: https://github.com/apache/dubbo/issues/5629
 [issues#5610]: https://github.com/apache/dubbo/issues/5610
@@ -64,6 +66,7 @@ dubbo v2.7.6 已经依赖的是 v1.0.6
 `ServiceAnnotationBeanPostProcessor#postProcessBeanDefinitionRegistry(...)`
 
 ## resolve
+- [pull#6253]
 
 ### 1  
 application.properties 中将 `spring.main.allow-bean-definition-overriding = true`。
