@@ -51,10 +51,17 @@ public class ProtocolFilterWrapper implements Protocol {
 
     private static <T> Invoker<T> buildInvokerChain(final Invoker<T> invoker, String key, String group) {
         Invoker<T> last = invoker;
+
+        /* 已排序，大致可以表示为：
+         *   Filter1->Filter2->Filter3->......->Invoker
+         *
+         * 也是先处理Dubbo的默认Filter，再来处理用户自己定义并且配置的Filter。
+         * 通过"-"配置，可以替换掉Dubbo的原生Filter，通过这样的设计，可以灵活地替换或者修改Filter的加载顺序。
+         */
         List<Filter> filters = ExtensionLoader.getExtensionLoader(Filter.class).getActivateExtension(invoker.getUrl(), key, group);
 
         if (!filters.isEmpty()) {
-            for (int i = filters.size() - 1; i >= 0; i--) {
+            for (int i = filters.size() - 1; i >= 0; i--) {  // 倒序!
                 final Filter filter = filters.get(i);
                 final Invoker<T> next = last;
                 last = new Invoker<T>() {
@@ -78,6 +85,10 @@ public class ProtocolFilterWrapper implements Protocol {
                     public Result invoke(Invocation invocation) throws RpcException {
                         Result asyncResult;
                         try {
+                            /** vergilyn-comment, 2020-06-23 >>>>
+                             *  具体的责任链调用
+                             *    sync -> 是 Filter#invoke() 中 `return next.invoke(invocation)`
+                             */
                             asyncResult = filter.invoke(next, invocation);
                         } catch (Exception e) {
                             if (filter instanceof ListenableFilter) {
@@ -161,6 +172,10 @@ public class ProtocolFilterWrapper implements Protocol {
              */
             return protocol.refer(type, url);
         }
+
+        /** vergilyn-comment, 2020-06-23 >>>> IMPORTANT
+         *  责任链模式 -> {@link Filter}
+         */
         return buildInvokerChain(protocol.refer(type, url), REFERENCE_FILTER_KEY, CommonConstants.CONSUMER);
     }
 

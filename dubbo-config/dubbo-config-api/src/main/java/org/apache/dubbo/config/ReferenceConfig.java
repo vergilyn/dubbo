@@ -368,7 +368,10 @@ public class ReferenceConfig<T> extends ReferenceConfigBase<T> {
                  *   REF_PROTOCOL 经过dubbo-spi被多次包装
                  *   EX. consumer的整个调用栈
                  *   <pre>
-                 *       invoker -> {@link RegistryProtocol#doRefer(org.apache.dubbo.rpc.cluster.Cluster, org.apache.dubbo.registry.Registry, java.lang.Class, org.apache.dubbo.common.URL)}
+                 *       invoker
+                 *       -> {@link org.apache.dubbo.rpc.protocol.ProtocolFilterWrapper#refer(Class, URL)}
+                 *       -> {@link RegistryProtocol#refer(Class, URL)}
+                 *       -> {@link RegistryProtocol#doRefer(org.apache.dubbo.rpc.cluster.Cluster, org.apache.dubbo.registry.Registry, java.lang.Class, org.apache.dubbo.common.URL)}
                  *   </pre>
                  *
                  */
@@ -421,7 +424,13 @@ public class ReferenceConfig<T> extends ReferenceConfigBase<T> {
             URL consumerURL = new URL(CONSUMER_PROTOCOL, map.remove(REGISTER_IP_KEY), 0, map.get(INTERFACE_KEY), map);
             metadataService.publishServiceDefinition(consumerURL);
         }
-        // create service proxy 重要！！！
+        //
+        /** vergilyn-comment, 2020-06-23 >>>> IMPORTANT, create service proxy
+         * <pre>
+         * -> {@link org.apache.dubbo.rpc.proxy.javassist.JavassistProxyFactory#getProxy(Invoker, boolean)}
+         * ->
+         * </pre>
+         */
         return (T) PROXY_FACTORY.getProxy(invoker, ProtocolUtils.isGeneric(generic));
     }
 
