@@ -1,12 +1,9 @@
-# 【900】provider & consumer proxy-class.MD
+# 【900】provider-wrapper & consumer-proxy.MD
 
-`org.apache.dubbo.rpc.proxy.javassist.JavassistProxyFactory`
+- provider-wrapper, `org.apache.dubbo.common.bytecode.Wrapper#makeWrapper(Class<?> c)` 
+- consumer-proxy, `org.apache.dubbo.common.bytecode.Proxy#getProxy(java.lang.Class<?>... ics)`
 
-
-## service provider
-
-## provider
-
+## example
 T proxy: `class com.vergilyn.examples.service.impl.ProviderFirstApiImpl`
 Class<T> type: `interface com.vergilyn.examples.api.ProviderFirstApi`
 URL url: 
@@ -31,6 +28,8 @@ injvm://127.0.0.1/com.vergilyn.examples.api.ProviderFirstApi
     &timestamp=1586925317589
     &version=1.0.0
 ```
+
+### provider wrapper
 
 ```java
 //
@@ -141,7 +140,7 @@ mts0 = {"class java.lang.String"};
 mts1 = {"class java.lang.String"};
 ```
 
-## service consumer
+### consumer proxy
 `Proxy#getProxy(...)` 中生成 service 的代理类（ccp、ccm）：
 - org.apache.dubbo.config.ReferenceConfig#createProxy()
 - org.apache.dubbo.rpc.proxy.javassist.JavassistProxyFactory#getProxy()
@@ -245,6 +244,7 @@ public class Proxy0
 **remark: ccp、ccm 最终可能是相同的 proxy-class，** EX. `org.apache.dubbo.common.bytecode.proxy0`**  
 
 ---
+### invoke stack
 
 回到实际业务代码中，此时通过`@Reference`已经为service创建了proxy-class，并实例化后注入到了业务类中。
 ```java
@@ -272,7 +272,7 @@ public class ConsumerExamplesApplication implements CommandLineRunner {
 }
 ```
 
-例如，`ProviderFirstApi` 的 proxy-class 即上面给出类似代码。
+例如，consumer `ProviderFirstApi` 的 proxy-class 即上面给出类似代码。
 然后现在执行`firstApi.sayHello("vergilyn")`，实际就是调用的`proxy0#sayHello()`。
 
 然后通过源码调用栈可知：  

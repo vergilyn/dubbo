@@ -4,7 +4,7 @@
 + [https://github.com/apache/dubbo-spring-boot-project][github, dubbo-spring-boot-project]
 + [https://github.com/apache/dubbo-admin][github, dubbo-admin]
 + [https://github.com/apache/dubbo-samples][github, dubbo-samples]
-+ [http://dubbo.apache.org/schema/dubbo/dubbo.xsd][dubbo.xsd]
++ [dubbo.xsd][http://dubbo.apache.org/schema/dubbo/dubbo.xsd]
 
 
 参考：
@@ -15,6 +15,11 @@
 [github, dubbo-spring-boot-project]: https://github.com/apache/dubbo-spring-boot-project
 [github, dubbo-admin]: https://github.com/apache/dubbo-admin
 [github, dubbo-samples]: https://github.com/apache/dubbo-samples
+
+## IMPORTANT
+1. 运行example错误
+`vergilyn-consumer-examples` 下的 `src/test/java/org/apache/dubbo`是dubbo 动态生成的代理/包装类 或者是 spi创建的，可能存在编译错误。  
+IDEA中可以：`File | Settings | Build, Execution, Deployment | Compiler | Excludes`
 
 ## dubbo feature
 1. 面向接口代理的高性能RPC调用  
